@@ -123,7 +123,7 @@ export default function InstallerDashboard() {
 
   const shareReferralLink = () => {
     if (codes.length === 0) return toast.error('Generate a code first');
-    const link = `https://www.betadaypos.com/auth/register?ref=${codes[0].code}`;
+    const link = `https://betadaypos.vercel.app/auth/register?ref=${codes[0].code}`;
     copyToClipboard(link, 'Referral link copied to clipboard!');
   };
 

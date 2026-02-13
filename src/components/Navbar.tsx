@@ -26,7 +26,7 @@ export default function Navbar() {
             <Link href="/#how-it-works" className="text-sm font-semibold text-slate-600 hover:text-primary transition-colors">How it Works</Link>
             <Link href="/installer" className="text-sm font-semibold text-slate-600 hover:text-primary transition-colors">Affiliate Installer</Link>
             <Link 
-              href="http://www.betadaypos.com" 
+              href="https://betadaypos.vercel.app/auth/register" 
               className="bg-primary text-white px-6 py-3 rounded-full font-bold hover:shadow-lg hover:bg-primary-dark transition-all transform hover:scale-105"
             >
               Get Started
@@ -48,7 +48,7 @@ export default function Navbar() {
             <Link href="/#how-it-works" className="block px-3 py-4 text-base font-medium text-slate-700">How it Works</Link>
             <Link href="/installer" className="block px-3 py-4 text-base font-medium text-slate-700 text-teal-600">Affiliate Installer</Link>
             <Link 
-              href="http://www.betadaypos.com" 
+              href="https://betadaypos.vercel.app/auth/register" 
               className="block w-full text-center bg-primary text-white px-3 py-4 rounded-xl font-bold"
             >
               Get Started
