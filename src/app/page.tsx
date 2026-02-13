@@ -79,7 +79,7 @@ export default function LandingPage() {
 
           <div className="flex flex-col sm:flex-row justify-center items-center gap-6 animate-fade-in mb-24" style={{ animationDelay: '0.3s' }}>
             <Link 
-              href="https://betadaypos.vercel.app/auth/register" 
+              href="/get-started" 
               className="px-10 py-6 bg-secondary text-white rounded-3xl font-black text-xl hover:shadow-[0_20px_50px_rgba(15,23,42,0.3)] hover:-translate-y-2 transition-all flex items-center justify-center gap-3 group relative overflow-hidden"
             >
               <span className="relative z-10">Start Your Freedom Trial</span>
@@ -198,7 +198,7 @@ export default function LandingPage() {
                  <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 blur-3xl" />
                  <h4 className="text-xl font-black mb-2 italic">14 Days Free Experience</h4>
                  <p className="text-slate-400 text-sm mb-6">Trial every single core feature and power-up for 14 days. Zero commitment. Full performance.</p>
-                 <Link href="https://betadaypos.vercel.app/auth/register" className="inline-flex items-center gap-2 font-black text-primary hover:gap-4 transition-all uppercase text-xs tracking-widest">
+                 <Link href="/get-started" className="inline-flex items-center gap-2 font-black text-primary hover:gap-4 transition-all uppercase text-xs tracking-widest">
                     Claim Your Trial <ArrowRight size={16} />
                  </Link>
               </div>
