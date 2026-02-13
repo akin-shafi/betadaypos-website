@@ -266,8 +266,8 @@ export default function LandingPage() {
                  ))}
               </div>
               <div className="flex gap-4 justify-center lg:justify-start">
-                 <button className="px-8 py-4 bg-white text-secondary rounded-2xl font-black hover:scale-105 transition-all">App Store</button>
-                 <button className="px-8 py-4 bg-slate-800 text-white border border-slate-700 rounded-2xl font-black hover:scale-105 transition-all">Play Store</button>
+                 <Link href="/get-started" className="px-8 py-4 bg-white text-secondary rounded-2xl font-black hover:scale-105 transition-all">App Store</Link>
+                 <Link href="/get-started" className="px-8 py-4 bg-slate-800 text-white border border-slate-700 rounded-2xl font-black hover:scale-105 transition-all">Play Store</Link>
               </div>
             </div>
             
