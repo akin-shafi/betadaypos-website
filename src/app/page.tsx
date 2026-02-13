@@ -23,7 +23,14 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { ReferralService } from '@/services/referral.service';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
+import { motion, useScroll, useTransform, useSpring, useMotionValue } from 'framer-motion';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+if (typeof window !== 'undefined') {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
 export default function LandingPage() {
   const [commSettings, setCommSettings] = useState<any>(null);
@@ -47,37 +54,98 @@ export default function LandingPage() {
       .catch((err) => console.error("Pricing error:", err));
   }, []);
 
+  const heroRef = useRef(null);
+  const headlineRef = useRef(null);
+  const subheadlineRef = useRef(null);
+  
+  const { scrollY } = useScroll();
+  const y1 = useTransform(scrollY, [0, 500], [0, 200]);
+  const y2 = useTransform(scrollY, [0, 500], [0, -150]);
+
+  useEffect(() => {
+    // GSAP Scroll Animations
+    const ctx = gsap.context(() => {
+      // Hero Entrance
+      const tl = gsap.timeline();
+      tl.from(headlineRef.current, { y: 100, opacity: 0, duration: 1, ease: "power4.out" })
+        .from(subheadlineRef.current, { y: 50, opacity: 0, duration: 1, ease: "power4.out" }, "-=0.8")
+        .from(".hero-cta", { y: 20, opacity: 0, duration: 0.8, ease: "back.out(1.7)" }, "-=0.6");
+
+      // Features Stagger
+      gsap.from(".feature-card", {
+        scrollTrigger: {
+          trigger: "#features",
+          start: "top 80%",
+        },
+        y: 100,
+        opacity: 0,
+        duration: 0.8,
+        stagger: 0.1,
+        ease: "power3.out"
+      });
+      
+      // Pricing Stagger
+      gsap.from(".pricing-card", {
+        scrollTrigger: {
+          trigger: "#pricing",
+          start: "top 75%",
+        },
+        y: 50,
+        opacity: 0,
+        duration: 0.8,
+        stagger: 0.1,
+        ease: "back.out(1.2)"
+      });
+
+    }, heroRef);
+
+    return () => ctx.revert();
+  }, []);
+
   return (
-    <div className="min-h-screen bg-[#fcfdfe]">
+    <div className="min-h-screen bg-[#fcfdfe]" ref={heroRef}>
       <Navbar />
 
       {/* Hero Section */}
       <section className="relative pt-32 pb-20 lg:pt-56 lg:pb-40 overflow-hidden">
         {/* Animated Background Orbs */}
-        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary/20 rounded-full blur-[120px] animate-pulse pointer-events-none" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-teal-200/20 rounded-full blur-[120px] animate-pulse pointer-events-none" style={{ animationDelay: '2s' }} />
+        <motion.div style={{ y: y1 }} className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary/20 rounded-full blur-[120px]" />
+        <motion.div style={{ y: y2 }} className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-teal-200/20 rounded-full blur-[120px]" />
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-          <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-white shadow-xl shadow-teal-500/10 border border-teal-50 text-teal-700 text-sm font-black mb-10 animate-fade-in uppercase tracking-wider">
+          <motion.div 
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.5 }}
+            className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-white shadow-xl shadow-teal-500/10 border border-teal-50 text-teal-700 text-sm font-black mb-10 uppercase tracking-wider"
+          >
             <Rocket size={16} fill="currentColor" strokeWidth={0} className="animate-bounce" />
             The Future of Commerce is Here
-          </div>
+          </motion.div>
           
-          <h1 className="text-6xl lg:text-8xl font-black text-secondary tracking-tighter mb-10 animate-fade-in leading-[0.9]" style={{ animationDelay: '0.1s' }}>
+          <h1 ref={headlineRef} className="text-6xl lg:text-8xl font-black text-secondary tracking-tighter mb-10 leading-[0.9]">
             Elevate Your <br />
             <span className="text-primary italic relative">
                Business
                <svg className="absolute -bottom-2 left-0 w-full" height="8" viewBox="0 0 100 8" preserveAspectRatio="none">
-                 <path d="M0 5 Q50 8 100 5" stroke="currentColor" strokeWidth="4" fill="none" />
+                 <motion.path 
+                   d="M0 5 Q50 8 100 5" 
+                   stroke="currentColor" 
+                   strokeWidth="4" 
+                   fill="none"
+                   initial={{ pathLength: 0 }}
+                   animate={{ pathLength: 1 }}
+                   transition={{ duration: 1, delay: 0.5 }}
+                 />
                </svg>
             </span>
           </h1>
           
-          <p className="max-w-3xl mx-auto text-xl lg:text-2xl text-slate-500 font-medium mb-14 animate-fade-in leading-relaxed" style={{ animationDelay: '0.2s' }}>
+          <p ref={subheadlineRef} className="max-w-3xl mx-auto text-xl lg:text-2xl text-slate-500 font-medium mb-14 leading-relaxed">
             BETADAY is the hyper-efficient POS ecosystem that turns complex operations into seamless growth. Manage everything from the palm of your hand.
           </p>
 
-          <div className="flex flex-col sm:flex-row justify-center items-center gap-6 animate-fade-in mb-24" style={{ animationDelay: '0.3s' }}>
+          <div className="hero-cta flex flex-col sm:flex-row justify-center items-center gap-6 mb-24">
             <Link 
               href="/get-started" 
               className="px-10 py-6 bg-secondary text-white rounded-3xl font-black text-xl hover:shadow-[0_20px_50px_rgba(15,23,42,0.3)] hover:-translate-y-2 transition-all flex items-center justify-center gap-3 group relative overflow-hidden"
@@ -97,7 +165,12 @@ export default function LandingPage() {
           </div>
 
           {/* Hero Image Container */}
-          <div className="relative max-w-6xl mx-auto px-4 animate-fade-in" style={{ animationDelay: '0.5s' }}>
+          <motion.div 
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="relative max-w-6xl mx-auto px-4"
+          >
             <div className="relative group">
                {/* Decorative elements */}
                <div className="absolute -top-10 -left-10 w-32 h-32 bg-primary/10 rounded-3xl -rotate-12 blur-2xl group-hover:rotate-0 transition-all duration-700" />
@@ -111,7 +184,11 @@ export default function LandingPage() {
                   />
                   
                   {/* Floating Stats */}
-                  <div className="absolute top-10 right-10 bg-white/90 backdrop-blur-md p-6 rounded-3xl shadow-2xl border border-white hidden lg:block animate-bounce" style={{ animationDuration: '4s' }}>
+                  <motion.div 
+                    animate={{ y: [0, -20, 0] }}
+                    transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+                    className="absolute top-10 right-10 bg-white/90 backdrop-blur-md p-6 rounded-3xl shadow-2xl border border-white hidden lg:block"
+                  >
                      <div className="flex items-center gap-4">
                         <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center">
                            <TrendingUp />
@@ -121,10 +198,10 @@ export default function LandingPage() {
                            <p className="text-2xl font-black text-slate-900">+42.8%</p>
                         </div>
                      </div>
-                  </div>
+                  </motion.div>
                </div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </section>
 
@@ -138,7 +215,7 @@ export default function LandingPage() {
       </div>
 
       {/* Pricing & Power-Ups Section */}
-      <section className="py-32 bg-slate-50 relative overflow-hidden">
+      <section id="pricing" className="py-32 bg-slate-50 relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-24">
             <h2 className="text-5xl lg:text-6xl font-black text-secondary tracking-tight mb-6">Simple <span className="text-primary italic">Pricing.</span> Extreme Power.</h2>
@@ -154,7 +231,7 @@ export default function LandingPage() {
               </h3>
               <div className="space-y-6">
                  {pricing?.plans?.map((plan: any) => (
-                   <div key={plan.type} className="p-8 rounded-[2.5rem] bg-white border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all group">
+                   <div key={plan.type} className="pricing-card p-8 rounded-[2.5rem] bg-white border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all group">
                       <div className="flex justify-between items-center mb-4">
                         <h4 className="text-xl font-black text-secondary">{plan.name}</h4>
                         <div className="text-right">
@@ -181,7 +258,7 @@ export default function LandingPage() {
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {pricing?.modules?.map((mod: any) => (
-                   <div key={mod.type} className="p-6 rounded-[2rem] bg-white border border-slate-100 shadow-sm hover:border-teal-200 transition-all group">
+                   <div key={mod.type} className="pricing-card p-6 rounded-[2rem] bg-white border border-slate-100 shadow-sm hover:border-teal-200 transition-all group">
                       <div className="flex justify-between items-start mb-3">
                         <h4 className="font-extrabold text-secondary text-sm">{mod.name}</h4>
                         <span className="text-xs font-black text-teal-600">₦{mod.price.toLocaleString()}/mo</span>
@@ -228,17 +305,17 @@ export default function LandingPage() {
                { icon: Bell, title: 'Live Pulse', desc: 'Instant notifications for critical events, shifts, and inventory alerts as they happen.' },
                { icon: Utensils, title: 'Recipe Matrix', desc: 'Advanced Bill of Materials (BOM) to track every gram of ingredient used in your sales.' },
              ].map((feat, i) => (
-               <div key={i} className="p-10 rounded-[3rem] bg-slate-50 border border-slate-100 hover:border-primary/30 hover:bg-white hover:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.05)] transition-all group relative overflow-hidden">
-                 <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors" />
-                 <div className="w-16 h-16 bg-white rounded-[1.5rem] flex items-center justify-center text-primary shadow-sm mb-8 group-hover:scale-110 group-hover:bg-primary group-hover:text-white transition-all">
-                   <feat.icon size={32} />
+                 <div key={i} className="feature-card p-10 rounded-[3rem] bg-slate-50 border border-slate-100 hover:border-primary/30 hover:bg-white hover:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.05)] transition-all group relative overflow-hidden">
+                   <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors" />
+                   <div className="w-16 h-16 bg-white rounded-[1.5rem] flex items-center justify-center text-primary shadow-sm mb-8 group-hover:scale-110 group-hover:bg-primary group-hover:text-white transition-all">
+                     <feat.icon size={32} />
+                   </div>
+                   <h3 className="text-2xl font-black text-secondary mb-4 tracking-tight">{feat.title}</h3>
+                   <p className="text-slate-500 leading-relaxed text-lg">{feat.desc}</p>
+                   <div className="mt-8 pt-8 border-t border-slate-100 flex items-center gap-2 text-primary font-black text-sm group-hover:gap-3 transition-all cursor-pointer">
+                      LEARN MORE <ArrowUpRight size={18} />
+                   </div>
                  </div>
-                 <h3 className="text-2xl font-black text-secondary mb-4 tracking-tight">{feat.title}</h3>
-                 <p className="text-slate-500 leading-relaxed text-lg">{feat.desc}</p>
-                 <div className="mt-8 pt-8 border-t border-slate-100 flex items-center gap-2 text-primary font-black text-sm group-hover:gap-3 transition-all cursor-pointer">
-                    LEARN MORE <ArrowUpRight size={18} />
-                 </div>
-               </div>
              ))}
           </div>
         </div>

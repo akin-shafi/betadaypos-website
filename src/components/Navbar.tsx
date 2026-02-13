@@ -8,6 +8,15 @@ import { cn } from '@/lib/utils';
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
 
+  const handleScroll = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>, href: string) => {
+    e.preventDefault();
+    const targetId = href.replace('/#', '');
+    const target = document.getElementById(targetId);
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <nav className="fixed top-0 left-0 w-full z-50 glass border-b border-slate-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -22,8 +31,8 @@ export default function Navbar() {
           </Link>
 
           <div className="hidden md:flex items-center gap-8">
-            <Link href="/#features" className="text-sm font-semibold text-slate-600 hover:text-primary transition-colors">Features</Link>
-            <Link href="/#how-it-works" className="text-sm font-semibold text-slate-600 hover:text-primary transition-colors">How it Works</Link>
+            <a href="/#features" onClick={(e) => handleScroll(e, '/#features')} className="text-sm font-semibold text-slate-600 hover:text-primary transition-colors cursor-pointer">Features</a>
+            <a href="/#pricing" onClick={(e) => handleScroll(e, '/#pricing')} className="text-sm font-semibold text-slate-600 hover:text-primary transition-colors cursor-pointer">Pricing</a>
             <Link href="/installer" className="text-sm font-semibold text-slate-600 hover:text-primary transition-colors">Affiliate Installer</Link>
             <Link 
               href="/get-started" 
@@ -44,8 +53,8 @@ export default function Navbar() {
       {isOpen && (
         <div className="md:hidden glass border-b border-slate-100 animate-fade-in">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-            <Link href="/#features" className="block px-3 py-4 text-base font-medium text-slate-700">Features</Link>
-            <Link href="/#how-it-works" className="block px-3 py-4 text-base font-medium text-slate-700">How it Works</Link>
+            <a href="/#features" onClick={(e) => handleScroll(e, '/#features')} className="block px-3 py-4 text-base font-medium text-slate-700 cursor-pointer">Features</a>
+            <a href="/#pricing" onClick={(e) => handleScroll(e, '/#pricing')} className="block px-3 py-4 text-base font-medium text-slate-700 cursor-pointer">Pricing</a>
             <Link href="/installer" className="block px-3 py-4 text-base font-medium text-slate-700 text-teal-600">Affiliate Installer</Link>
             <Link 
               href="/get-started" 
