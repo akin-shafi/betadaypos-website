@@ -71,19 +71,6 @@ export default function LandingPage() {
         .from(subheadlineRef.current, { y: 50, opacity: 0, duration: 1, ease: "power4.out" }, "-=0.8")
         .from(".hero-cta", { y: 20, opacity: 0, duration: 0.8, ease: "back.out(1.7)" }, "-=0.6");
 
-      // Features Stagger
-      gsap.from(".feature-card", {
-        scrollTrigger: {
-          trigger: "#features",
-          start: "top 80%",
-        },
-        y: 100,
-        opacity: 0,
-        duration: 0.8,
-        stagger: 0.1,
-        ease: "power3.out"
-      });
-      
       // Pricing Stagger
       gsap.from(".pricing-card", {
         scrollTrigger: {
@@ -305,18 +292,25 @@ export default function LandingPage() {
                { icon: Bell, title: 'Live Pulse', desc: 'Instant notifications for critical events, shifts, and inventory alerts as they happen.' },
                { icon: Utensils, title: 'Recipe Matrix', desc: 'Advanced Bill of Materials (BOM) to track every gram of ingredient used in your sales.' },
              ].map((feat, i) => (
-                 <div key={i} className="feature-card p-10 rounded-[3rem] bg-slate-50 border border-slate-100 hover:border-primary/30 hover:bg-white hover:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.05)] transition-all group relative overflow-hidden">
-                   <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors" />
-                   <div className="w-16 h-16 bg-white rounded-[1.5rem] flex items-center justify-center text-primary shadow-sm mb-8 group-hover:scale-110 group-hover:bg-primary group-hover:text-white transition-all">
-                     <feat.icon size={32} />
-                   </div>
-                   <h3 className="text-2xl font-black text-secondary mb-4 tracking-tight">{feat.title}</h3>
-                   <p className="text-slate-500 leading-relaxed text-lg">{feat.desc}</p>
-                   <div className="mt-8 pt-8 border-t border-slate-100 flex items-center gap-2 text-primary font-black text-sm group-hover:gap-3 transition-all cursor-pointer">
-                      LEARN MORE <ArrowUpRight size={18} />
-                   </div>
-                 </div>
-             ))}
+                  <motion.div 
+                    key={i} 
+                    initial={{ opacity: 0, y: 50 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: i * 0.1 }}
+                    viewport={{ once: true, margin: "-50px" }}
+                    className="feature-card p-10 rounded-[3rem] bg-slate-50 border border-slate-100 hover:border-primary/30 hover:bg-white hover:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.05)] transition-all group relative overflow-hidden"
+                  >
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors" />
+                    <div className="w-16 h-16 bg-white rounded-[1.5rem] flex items-center justify-center text-primary shadow-sm mb-8 group-hover:scale-110 group-hover:bg-primary group-hover:text-white transition-all">
+                      <feat.icon size={32} />
+                    </div>
+                    <h3 className="text-2xl font-black text-secondary mb-4 tracking-tight">{feat.title}</h3>
+                    <p className="text-slate-500 leading-relaxed text-lg">{feat.desc}</p>
+                    <div className="mt-8 pt-8 border-t border-slate-100 flex items-center gap-2 text-primary font-black text-sm group-hover:gap-3 transition-all cursor-pointer">
+                       LEARN MORE <ArrowUpRight size={18} />
+                    </div>
+                  </motion.div>
+              ))}
           </div>
         </div>
       </section>
