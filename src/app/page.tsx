@@ -207,9 +207,57 @@ export default function LandingPage() {
       {/* Pricing & Power-Ups Section */}
       <section id="pricing" className="py-32 bg-slate-50 relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-24">
-            <h2 className="text-5xl lg:text-6xl font-black text-secondary tracking-tight mb-6">Simple <span className="text-primary italic">Pricing.</span> Extreme Power.</h2>
-            <p className="text-xl text-slate-500 max-w-2xl mx-auto">Choose a plan that fits your scale, and power up with specialized modules as you grow.</p>
+          <div className="text-center mb-16">
+            <h2 className="text-5xl lg:text-6xl font-black text-secondary tracking-tight mb-6 text-center">Simple <span className="text-primary italic">Pricing.</span> Extreme Power.</h2>
+            <p className="text-xl text-slate-500 max-w-2xl mx-auto mb-10">Choose a plan that fits your scale, and power up with specialized modules as you grow.</p>
+            
+            {/* Billing Cycle Toggle */}
+            <div className="bg-white p-1.5 rounded-2xl inline-flex shadow-sm border border-slate-100 mb-8">
+              {[
+                { id: 'MONTHLY' as BillingCycle, label: 'Monthly', tag: null },
+                { id: 'QUARTERLY' as BillingCycle, label: 'Quarterly', tag: 'Save 10%' },
+                { id: 'ANNUAL' as BillingCycle, label: 'Annual', tag: 'Save 15%' },
+              ].map((cycle) => (
+                <button
+                  key={cycle.id}
+                  type="button"
+                  onClick={() => setBillingCycle(cycle.id)}
+                  className={`px-6 py-3 rounded-xl text-sm font-bold transition-all relative ${
+                    billingCycle === cycle.id
+                      ? 'bg-secondary text-white shadow-md'
+                      : 'text-slate-500 hover:text-slate-700'
+                  }`}
+                >
+                  {cycle.label}
+                  {cycle.tag && (
+                    <span className={`absolute -top-2 -right-2 text-white text-[8px] font-black py-0.5 px-2 rounded-full transition-all ${
+                        billingCycle === cycle.id ? "bg-primary opacity-100 scale-100" : "bg-slate-400 opacity-0 scale-75"
+                    }`}>{cycle.tag}</span>
+                  )}
+                </button>
+              ))}
+            </div>
+
+            {/* Access Anywhere Banner */}
+            <div className="max-w-xl mx-auto mb-12 flex flex-col items-center gap-4">
+               <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/5 text-primary rounded-full text-xs font-black uppercase tracking-widest border border-primary/10">
+                  One license. Use on any device — mobile, desktop, or web.
+               </div>
+               <p className="text-[10px] text-slate-400 font-bold italic uppercase tracking-wider text-center">Access is based on the number of users, not devices.</p>
+            </div>
+
+            {/* Software License Disclaimer */}
+            <div className="max-w-2xl mx-auto p-4 bg-white border border-slate-200 rounded-2xl flex items-start gap-3 shadow-sm text-left">
+              <div className="w-8 h-8 bg-amber-50 rounded-xl flex items-center justify-center text-amber-500 flex-shrink-0 mt-0.5">
+                <AlertTriangle size={16} />
+              </div>
+              <div>
+                <p className="text-xs font-black text-slate-700">Software License Only</p>
+                <p className="text-[11px] text-slate-500 mt-1 leading-relaxed">
+                  All prices displayed are for the BETADAY <strong>software license only</strong> and do not include hardware costs. Hardware costs vary — contact your installer for a quote.
+                </p>
+              </div>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">

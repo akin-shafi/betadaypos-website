@@ -31,9 +31,12 @@ export default function GetStarted() {
                 </svg>
               </span>
             </h1>
-            <p className="text-xl text-slate-500 max-w-2xl mx-auto font-medium">
+            <p className="text-xl text-slate-500 max-w-2xl mx-auto font-medium mb-6">
               We've built a unified ecosystem that adapts to your workflow. Select the platform that best fits your needs today.
             </p>
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/5 text-primary rounded-full text-xs font-black uppercase tracking-widest border border-primary/10">
+              One license. Use on any device — mobile, desktop, or web.
+            </div>
           </div>
 
           {/* Section 2: 3 Product Cards */}
