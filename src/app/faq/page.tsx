@@ -31,7 +31,7 @@ const faqs = [
       },
       {
         q: "Do I need an internet connection to use BETADAY?",
-        a: "No! BETADAY is built with 'Edge Performance' technology. It works fully offline, allowing you to process transactions during internet outages. Once you're back online, everything syncs automatically to the cloud."
+        a: "No! BETADAY is built with 'Edge Performance' technology while using the desktop version. It works fully offline, allowing you to process transactions during internet outages. Once you're back online, everything syncs automatically to the cloud."
       }
     ]
   },
