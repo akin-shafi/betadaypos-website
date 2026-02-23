@@ -32,9 +32,12 @@ if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger);
 }
 
+type BillingCycle = 'MONTHLY' | 'QUARTERLY' | 'ANNUAL';
+
 export default function LandingPage() {
   const [commSettings, setCommSettings] = useState<any>(null);
   const [pricing, setPricing] = useState<any>({ plans: [], modules: [] });
+  const [billingCycle, setBillingCycle] = useState<BillingCycle>('MONTHLY');
 
   useEffect(() => {
     ReferralService.getSettings().then(setCommSettings).catch(() => {});
