@@ -533,20 +533,28 @@ export default function LandingPage() {
                     </div>
                  </div>
 
-                  <div className="flex flex-col md:flex-row items-center gap-8">
+                   <div className="flex flex-col md:flex-row items-center gap-8">
                     <div className="text-center md:text-right">
                        <p className="text-[10px] font-black text-teal-400 uppercase tracking-widest mb-1">{billingCycle} Settlement Due</p>
                        <div className="flex flex-col items-center md:items-end">
-                          {billingCycle !== 'MONTHLY' && (
-                             <div className="flex items-center gap-2 mb-1">
-                                <span className="text-[10px] font-bold text-slate-500 line-through opacity-70 relative -top-2">
-                                   ₦{calculateOriginalTotal().toLocaleString()}
-                                </span>
-                                <span className="text-[9px] font-black bg-teal-500/10 text-teal-400 px-1.5 py-0.5 rounded-md uppercase">
-                                   {billingCycle === 'ANNUAL' ? 'Save 15%' : 'Save 10%'}
-                                </span>
-                             </div>
-                          )}
+                          {billingCycle !== 'MONTHLY' && (() => {
+                             const original = calculateOriginalTotal();
+                             const current = calculateBillingTotal();
+                             const savings = original > 0 ? Math.round(((original - current) / original) * 100) : 0;
+                             
+                             return (
+                               <div className="flex items-center gap-2 mb-1">
+                                  <div className="flex flex-col items-end">
+                                     <span className="text-[10px] font-bold text-slate-500 line-through opacity-70 relative -top-1">
+                                        ₦{original.toLocaleString()}
+                                     </span>
+                                  </div>
+                                  <span className="text-[9px] font-black bg-teal-500/10 text-teal-400 px-1.5 py-0.5 rounded-md uppercase">
+                                     Save {savings}%
+                                  </span>
+                               </div>
+                             );
+                          })()}
                           <p className="text-3xl font-black tracking-tighter leading-tight">₦{calculateBillingTotal().toLocaleString()}</p>
                        </div>
                     </div>
