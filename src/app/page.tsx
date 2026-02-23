@@ -48,38 +48,49 @@ export default function LandingPage() {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [selectedModules, setSelectedModules] = useState<string[]>([]);
 
-  const calculateTotal = () => {
+  const calculateBillingTotal = () => {
     let total = 0;
-    // Base plan price
-    let planToFind = selectedPlan;
-    if (businessFocus === 'BASIC') {
-      planToFind = billingCycle === 'ANNUAL' ? 'SERVICE_ANNUAL' : billingCycle === 'QUARTERLY' ? 'SERVICE_QUARTERLY' : 'SERVICE_MONTHLY';
-    }
-
-    const plan = pricing.plans.find((p: any) => p.type === planToFind);
-    if (plan) {
-      total += plan.price;
-    } else if (pricing.plans.length > 0) {
-      // Fallback
-      total += pricing.plans[0].price;
-    }
     
-    // Modules price - only if growing
+    // Base Plan
+    let planType = selectedPlan;
+    if (businessFocus === 'BASIC') {
+      planType = billingCycle === 'ANNUAL' ? 'SERVICE_ANNUAL' : billingCycle === 'QUARTERLY' ? 'SERVICE_QUARTERLY' : 'SERVICE_MONTHLY';
+    }
+    const plan = pricing.plans.find((p: any) => p.type === planType);
+    if (plan) total += plan.price;
+    
+    // Modules
     if (businessFocus === 'GROWING') {
+      const multiplier = billingCycle === 'ANNUAL' ? 12 : billingCycle === 'QUARTERLY' ? 3 : 1;
+      const discount = billingCycle === 'ANNUAL' ? 0.85 : billingCycle === 'QUARTERLY' ? 0.9 : 1;
+      
       selectedModules.forEach(modType => {
         const mod = pricing.modules.find((m: any) => m.type === modType);
-        if (mod) total += mod.price;
+        if (mod) total += (mod.price * multiplier * discount);
       });
     }
     
-    return total;
+    return Math.round(total);
   };
 
-  const calculateBillingTotal = () => {
-    const monthlyTotal = calculateTotal();
+  const calculateOriginalTotal = () => {
+    let total = 0;
     const multiplier = billingCycle === 'ANNUAL' ? 12 : billingCycle === 'QUARTERLY' ? 3 : 1;
-    const discount = billingCycle === 'ANNUAL' ? 0.85 : billingCycle === 'QUARTERLY' ? 0.9 : 1;
-    return Math.round(monthlyTotal * multiplier * discount);
+
+    // Base Plan original (Monthly price * multiplier)
+    const monthlyPlanType = businessFocus === 'BASIC' ? 'SERVICE_MONTHLY' : 'MONTHLY';
+    const monthlyPlan = pricing.plans.find((p: any) => p.type === monthlyPlanType);
+    if (monthlyPlan) total += (monthlyPlan.price * multiplier);
+    
+    // Modules original (Monthly price * multiplier)
+    if (businessFocus === 'GROWING') {
+      selectedModules.forEach(modType => {
+        const mod = pricing.modules.find((m: any) => m.type === modType);
+        if (mod) total += (mod.price * multiplier);
+      });
+    }
+    
+    return Math.round(total);
   };
 
   useEffect(() => {
@@ -102,6 +113,19 @@ export default function LandingPage() {
       })
       .catch((err) => console.error("Pricing error:", err));
   }, []);
+
+  // Auto-select plan when cycle or focus changes
+  useEffect(() => {
+    if (!pricing.plans || pricing.plans.length === 0) return;
+
+    const targetType = billingCycle === 'ANNUAL' 
+      ? (businessFocus === 'BASIC' ? 'SERVICE_ANNUAL' : 'ANNUAL')
+      : billingCycle === 'QUARTERLY'
+      ? (businessFocus === 'BASIC' ? 'SERVICE_QUARTERLY' : 'QUARTERLY')
+      : (businessFocus === 'BASIC' ? 'SERVICE_MONTHLY' : 'MONTHLY');
+
+    setSelectedPlan(targetType);
+  }, [billingCycle, businessFocus, pricing.plans]);
 
   const heroRef = useRef(null);
   const headlineRef = useRef(null);
@@ -509,10 +533,22 @@ export default function LandingPage() {
                     </div>
                  </div>
 
-                 <div className="flex flex-col md:flex-row items-center gap-8">
+                  <div className="flex flex-col md:flex-row items-center gap-8">
                     <div className="text-center md:text-right">
                        <p className="text-[10px] font-black text-teal-400 uppercase tracking-widest mb-1">{billingCycle} Settlement Due</p>
-                       <p className="text-3xl font-black tracking-tighter">₦{calculateBillingTotal().toLocaleString()}</p>
+                       <div className="flex flex-col items-center md:items-end">
+                          {billingCycle !== 'MONTHLY' && (
+                             <div className="flex items-center gap-2 mb-1">
+                                <span className="text-[10px] font-bold text-slate-500 line-through opacity-70 relative -top-2">
+                                   ₦{calculateOriginalTotal().toLocaleString()}
+                                </span>
+                                <span className="text-[9px] font-black bg-teal-500/10 text-teal-400 px-1.5 py-0.5 rounded-md uppercase">
+                                   {billingCycle === 'ANNUAL' ? 'Save 15%' : 'Save 10%'}
+                                </span>
+                             </div>
+                          )}
+                          <p className="text-3xl font-black tracking-tighter leading-tight">₦{calculateBillingTotal().toLocaleString()}</p>
+                       </div>
                     </div>
                     <Link href="/get-started" className="px-8 py-4 bg-primary text-secondary rounded-2xl font-black uppercase text-xs tracking-widest hover:scale-105 transition-all shadow-xl shadow-primary/20">
                        Deploy Workspace
