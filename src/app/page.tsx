@@ -19,10 +19,16 @@ import {
   BookOpen,
   AlertTriangle,
   Bell,
-  Utensils
+  Utensils,
+  Check,
+  LayoutDashboard,
+  ArrowLeft,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import Link from 'next/link';
 import { ReferralService } from '@/services/referral.service';
+import { cn } from '@/lib/utils';
 import { useEffect, useState, useRef } from 'react';
 import { motion, useScroll, useTransform, useSpring, useMotionValue } from 'framer-motion';
 import gsap from 'gsap';
@@ -38,6 +44,43 @@ export default function LandingPage() {
   const [commSettings, setCommSettings] = useState<any>(null);
   const [pricing, setPricing] = useState<any>({ plans: [], modules: [] });
   const [billingCycle, setBillingCycle] = useState<BillingCycle>('MONTHLY');
+  const [businessFocus, setBusinessFocus] = useState<'GROWING' | 'BASIC'>('GROWING');
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
+  const [selectedModules, setSelectedModules] = useState<string[]>([]);
+
+  const calculateTotal = () => {
+    let total = 0;
+    // Base plan price
+    let planToFind = selectedPlan;
+    if (businessFocus === 'BASIC') {
+      planToFind = billingCycle === 'ANNUAL' ? 'SERVICE_ANNUAL' : billingCycle === 'QUARTERLY' ? 'SERVICE_QUARTERLY' : 'SERVICE_MONTHLY';
+    }
+
+    const plan = pricing.plans.find((p: any) => p.type === planToFind);
+    if (plan) {
+      total += plan.price;
+    } else if (pricing.plans.length > 0) {
+      // Fallback
+      total += pricing.plans[0].price;
+    }
+    
+    // Modules price - only if growing
+    if (businessFocus === 'GROWING') {
+      selectedModules.forEach(modType => {
+        const mod = pricing.modules.find((m: any) => m.type === modType);
+        if (mod) total += mod.price;
+      });
+    }
+    
+    return total;
+  };
+
+  const calculateBillingTotal = () => {
+    const monthlyTotal = calculateTotal();
+    const multiplier = billingCycle === 'ANNUAL' ? 12 : billingCycle === 'QUARTERLY' ? 3 : 1;
+    const discount = billingCycle === 'ANNUAL' ? 0.85 : billingCycle === 'QUARTERLY' ? 0.9 : 1;
+    return Math.round(monthlyTotal * multiplier * discount);
+  };
 
   useEffect(() => {
     ReferralService.getSettings().then(setCommSettings).catch(() => {});
@@ -46,12 +89,15 @@ export default function LandingPage() {
     const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5050/api/v1';
     const cleanBaseUrl = baseUrl.endsWith('/api/v1') ? baseUrl : `${baseUrl}/api/v1`;
     
-    // Use the PUBLIC pricing endpoint (/pricing) instead of protected (/subscription/pricing)
     fetch(`${cleanBaseUrl}/pricing`)
       .then(res => res.ok ? res.json() : Promise.reject('Pricing fetch failed'))
       .then(data => {
         if (data && data.plans && data.modules) {
           setPricing(data);
+          // Set default plan
+          if (data.plans.length > 0) {
+            setSelectedPlan(data.plans[0].type);
+          }
         }
       })
       .catch((err) => console.error("Pricing error:", err));
@@ -254,13 +300,45 @@ export default function LandingPage() {
               <div>
                 <p className="text-xs font-black text-slate-700">Software License Only</p>
                 <p className="text-[11px] text-slate-500 mt-1 leading-relaxed">
-                  All prices displayed are for the BETADAY <strong>software license only</strong> and do not include hardware costs. Hardware costs vary — contact your installer for a quote.
+                  All prices displayed are for the BETADAY <strong>software license only</strong> and do not include the cost of hardware (POS terminals, printers, barcode scanners, etc.). Hardware costs vary by setup — please contact your installer or sales representative for a customized quote.
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
+          {/* Business Type Toggle - Alignment with Web App */}
+          <div className="flex flex-col md:flex-row gap-4 mb-16 p-1 bg-white rounded-2xl md:max-w-md mx-auto shadow-sm border border-slate-100 relative z-10">
+             <button
+              type="button"
+              onClick={() => {
+                setBusinessFocus('GROWING');
+                // Reset plan to standard if switching to growing
+                setSelectedPlan('MONTHLY');
+              }}
+              className={cn(
+                "flex-1 py-3 px-4 rounded-xl text-xs font-bold transition-all",
+                businessFocus === 'GROWING' ? "bg-secondary text-white shadow-md" : "text-slate-500 hover:bg-slate-50"
+              )}
+             >
+              Growing Business
+             </button>
+             <button
+              type="button"
+              onClick={() => {
+                setBusinessFocus('BASIC');
+                // Reset plan to service if switching to basic
+                setSelectedPlan('SERVICE_MONTHLY');
+              }}
+              className={cn(
+                "flex-1 py-3 px-4 rounded-xl text-xs font-bold transition-all",
+                businessFocus === 'BASIC' ? "bg-secondary text-white shadow-md" : "text-slate-500 hover:bg-slate-50"
+              )}
+             >
+              Starter / Basic
+             </button>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 relative pb-32">
             {/* Base Plans */}
             <div>
               <h3 className="text-2xl font-black text-secondary mb-10 flex items-center gap-4">
@@ -271,29 +349,61 @@ export default function LandingPage() {
                  {(() => {
                    const filtered = (pricing?.plans || []).filter((plan: any) => {
                      const t = (plan.type || '').toUpperCase();
+                     const isService = t.includes('SERVICE');
+                     
+                     // Filter based on focus
+                     if (businessFocus === 'BASIC') {
+                        if (!isService) return false;
+                     } else {
+                        if (isService) return false;
+                     }
+
                      if (billingCycle === 'MONTHLY') return t === 'MONTHLY' || t === 'SERVICE_MONTHLY';
                      if (billingCycle === 'QUARTERLY') return t === 'QUARTERLY' || t === 'SERVICE_QUARTERLY';
                      if (billingCycle === 'ANNUAL') return t === 'ANNUAL' || t === 'SERVICE_ANNUAL';
                      return false;
                    });
+                   
                    const plansToShow = filtered.length > 0 ? filtered : (pricing?.plans || []);
-                   return plansToShow.map((plan: any) => (
-                   <div key={plan.type} className="pricing-card p-8 rounded-[2.5rem] bg-white border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all group">
-                      <div className="flex justify-between items-center mb-4">
-                        <h4 className="text-xl font-black text-secondary">{plan.name}</h4>
-                        <div className="text-right">
-                          <p className="text-2xl font-black text-primary">₦{plan.price.toLocaleString()}</p>
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">/ {plan.duration_days} DAYS</p>
-                        </div>
+                   
+                   return plansToShow.map((plan: any) => {
+                    const isSelected = selectedPlan === plan.type;
+                    return (
+                      <div 
+                        key={plan.type} 
+                        onClick={() => setSelectedPlan(plan.type)}
+                        className={cn(
+                          "pricing-card p-8 rounded-[2.5rem] bg-white border-2 cursor-pointer transition-all group relative",
+                          isSelected ? "border-primary shadow-xl ring-4 ring-primary/5" : "border-slate-100 shadow-sm hover:border-slate-200"
+                        )}
+                      >
+                         {isSelected && (
+                           <div className="absolute -top-3 -right-3 w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white shadow-lg z-20">
+                             <Check size={18} strokeWidth={3} />
+                           </div>
+                         )}
+                         <div className="flex justify-between items-center mb-4">
+                           <h4 className="text-xl font-black text-secondary">{plan.name}</h4>
+                           <div className="text-right">
+                             <p className="text-2xl font-black text-primary">₦{plan.price.toLocaleString()}</p>
+                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">/ {plan.duration_days} DAYS</p>
+                           </div>
+                         </div>
+                         <p className="text-slate-500 mb-6 text-sm italic">{plan.description || `Optimized for ${plan.user_limit} staff and ${plan.product_limit} products.`}</p>
+                         <div className="flex flex-wrap gap-4">
+                           <span className="px-3 py-1 bg-slate-50 rounded-lg text-[10px] font-black text-slate-400 uppercase tracking-tighter">OFFLINE ACCESS</span>
+                           <span className="px-3 py-1 bg-slate-50 rounded-lg text-[10px] font-black text-slate-400 uppercase tracking-tighter">CLOUD SYNC</span>
+                           <span className="px-3 py-1 bg-slate-50 rounded-lg text-[10px] font-black text-slate-400 uppercase tracking-tighter">CORE REPORTS</span>
+                           {billingCycle !== 'MONTHLY' && (
+                             <span className="px-3 py-1 bg-teal-50 rounded-lg text-[10px] font-black text-teal-600 uppercase tracking-tighter animate-pulse">
+                               {billingCycle === 'ANNUAL' ? 'SAVE 15%' : 'SAVE 10%'}
+                             </span>
+                           )}
+                         </div>
                       </div>
-                      <p className="text-slate-500 mb-6 text-sm">{plan.description || `Optimized for ${plan.user_limit} staff and ${plan.product_limit} products.`}</p>
-                      <div className="flex flex-wrap gap-4">
-                        <span className="px-3 py-1 bg-slate-50 rounded-lg text-[10px] font-black text-slate-400 uppercase tracking-tighter">OFFLINE ACCESS</span>
-                        <span className="px-3 py-1 bg-slate-50 rounded-lg text-[10px] font-black text-slate-400 uppercase tracking-tighter">CLOUD SYNC</span>
-                        <span className="px-3 py-1 bg-slate-50 rounded-lg text-[10px] font-black text-slate-400 uppercase tracking-tighter">CORE REPORTS</span>
-                      </div>
-                   </div>
-                 ))}
+                    );
+                   });
+                 })()}
               </div>
             </div>
 
@@ -303,24 +413,75 @@ export default function LandingPage() {
                  <div className="w-10 h-10 bg-teal-500/10 rounded-xl flex items-center justify-center text-teal-600"><Zap size={20} /></div>
                  Premium Power-Ups
               </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              
+              {businessFocus === 'BASIC' ? (
+                <div className="flex-1 w-full p-12 text-center space-y-6 bg-white rounded-[3.5rem] border-2 border-dashed border-slate-100 animate-fade-in my-4">
+                   <div className="w-20 h-20 bg-teal-50 rounded-3xl flex items-center justify-center mx-auto text-teal-600 shadow-xl shadow-teal-500/5 rotate-3">
+                      <Store size={40} />
+                   </div>
+                   <div className="space-y-3 max-w-sm mx-auto">
+                      <h3 className="text-2xl font-black text-slate-900 tracking-tight leading-tight">Basic Sales Mode</h3>
+                      <p className="text-slate-500 leading-relaxed font-medium text-sm">
+                        Perfect for small shops & kiosks. Track sales, print receipts, and manage a small catalog.
+                      </p>
+                   </div>
+                   <div className="inline-flex items-center gap-3 px-6 py-3 bg-teal-100/50 text-teal-700 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] border border-teal-200">
+                      <ShieldCheck size={14} />
+                      Essential Features Only
+                   </div>
+                   <p className="text-[10px] text-slate-400 font-bold italic uppercase">Module selection is disabled for basic plans.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {pricing?.modules?.map((mod: any) => {
                    const multiplier = billingCycle === 'ANNUAL' ? 12 : billingCycle === 'QUARTERLY' ? 3 : 1;
                    const discount = billingCycle === 'ANNUAL' ? 0.85 : billingCycle === 'QUARTERLY' ? 0.9 : 1;
                    const displayPrice = Math.round(mod.price * multiplier * discount);
+                   const isSelected = selectedModules.includes(mod.type);
+
                    return (
-                   <div key={mod.type} className="pricing-card p-6 rounded-[2rem] bg-white border border-slate-100 shadow-sm hover:border-teal-200 transition-all group">
-                      <div className="flex justify-between items-start mb-3">
-                        <h4 className="font-extrabold text-secondary text-sm">{mod.name}</h4>
-                        <span className="text-xs font-black text-teal-600">₦{mod.price.toLocaleString()}/mo</span>
-                      </div>
-                      <p className="text-[11px] text-slate-500 leading-relaxed mb-4">{mod.description}</p>
-                      <div className="w-8 h-8 rounded-lg bg-teal-50 flex items-center justify-center text-teal-600 group-hover:bg-teal-500 group-hover:text-white transition-all">
-                        <ArrowUpRight size={14} />
-                      </div>
-                   </div>
-                ))}
+                    <div 
+                      key={mod.type} 
+                      onClick={() => {
+                        if (isSelected) {
+                          setSelectedModules(selectedModules.filter(m => m !== mod.type));
+                        } else {
+                          setSelectedModules([...selectedModules, mod.type]);
+                        }
+                      }}
+                      className={cn(
+                        "pricing-card p-6 rounded-[2rem] bg-white border-2 cursor-pointer transition-all group relative",
+                        isSelected ? "border-teal-500 shadow-md bg-teal-50/10" : "border-slate-100 shadow-sm hover:border-teal-200"
+                      )}
+                    >
+                       {isSelected && (
+                         <div className="absolute -top-2 -right-2 w-6 h-6 bg-teal-500 rounded-full flex items-center justify-center text-white shadow-md z-20">
+                           <Check size={14} strokeWidth={3} />
+                         </div>
+                       )}
+                       <div className="flex justify-between items-start mb-3">
+                         <h4 className="font-extrabold text-secondary text-sm">{mod.name}</h4>
+                         <div className="text-right">
+                           <span className="text-xs font-black text-teal-600">
+                             ₦{displayPrice.toLocaleString()}
+                           </span>
+                           <p className="text-[8px] font-bold text-slate-400 uppercase">
+                             {billingCycle === 'MONTHLY' ? '/mo' : billingCycle === 'QUARTERLY' ? '/qtr' : '/yr'}
+                           </p>
+                         </div>
+                       </div>
+                       <p className="text-[11px] text-slate-500 leading-relaxed mb-4">{mod.description}</p>
+                       <div className={cn(
+                         "w-8 h-8 rounded-lg flex items-center justify-center transition-all",
+                         isSelected ? "bg-teal-500 text-white" : "bg-teal-50 text-teal-600"
+                       )}>
+                         <ArrowUpRight size={14} />
+                       </div>
+                    </div>
+                   );
+                })}
               </div>
+              )}
               
               <div className="mt-10 p-8 rounded-[2.5rem] bg-gradient-to-br from-secondary to-slate-800 text-white relative overflow-hidden">
                  <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 blur-3xl" />
@@ -329,6 +490,34 @@ export default function LandingPage() {
                  <Link href="/get-started" className="inline-flex items-center gap-2 font-black text-primary hover:gap-4 transition-all uppercase text-xs tracking-widest">
                     Claim Your Trial <ArrowRight size={16} />
                  </Link>
+              </div>
+            </div>
+
+            {/* Config Summary Bar - Floating or Fixed at bottom of section */}
+            <div className="absolute bottom-0 left-0 w-full p-4 pointer-events-none">
+              <div className="max-w-4xl mx-auto bg-slate-900 text-white p-6 rounded-[2rem] shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6 pointer-events-auto border border-white/10 animate-slide-up">
+                 <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 bg-primary/20 rounded-2xl flex items-center justify-center text-primary">
+                       <LayoutDashboard size={28} />
+                    </div>
+                    <div>
+                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Your Configuration Summary</p>
+                       <p className="text-lg font-black tracking-tight leading-none">
+                          {businessFocus === 'BASIC' ? 'Starter / Basic Plan' : (pricing.plans.find((p: any) => p.type === selectedPlan)?.name || 'Select a plan')}
+                          {businessFocus === 'GROWING' && selectedModules.length > 0 && <span className="text-primary ml-1">+ {selectedModules.length} Power-Ups</span>}
+                       </p>
+                    </div>
+                 </div>
+
+                 <div className="flex flex-col md:flex-row items-center gap-8">
+                    <div className="text-center md:text-right">
+                       <p className="text-[10px] font-black text-teal-400 uppercase tracking-widest mb-1">{billingCycle} Settlement Due</p>
+                       <p className="text-3xl font-black tracking-tighter">₦{calculateBillingTotal().toLocaleString()}</p>
+                    </div>
+                    <Link href="/get-started" className="px-8 py-4 bg-primary text-secondary rounded-2xl font-black uppercase text-xs tracking-widest hover:scale-105 transition-all shadow-xl shadow-primary/20">
+                       Deploy Workspace
+                    </Link>
+                 </div>
               </div>
             </div>
           </div>
@@ -451,6 +640,36 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* FAQ Mini Section */}
+      <section className="py-24 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+           <div className="bg-slate-50 rounded-[4rem] p-12 lg:p-20 flex flex-col lg:flex-row items-center justify-between gap-12 border border-slate-100 shadow-sm">
+              <div className="text-center lg:text-left max-w-xl">
+                 <h2 className="text-4xl lg:text-5xl font-black text-secondary tracking-tighter mb-6">Common <span className="text-primary italic">Questions.</span></h2>
+                 <p className="text-lg text-slate-500 font-medium mb-8">
+                    Get quick answers to the most frequent inquiries about BETADAY POS ecosystems and deployments.
+                 </p>
+                 <Link href="/faq" className="inline-flex items-center gap-3 px-8 py-4 bg-secondary text-white rounded-2xl font-black uppercase text-xs tracking-widest hover:gap-6 transition-all">
+                    View Full FAQ <ArrowRight size={18} />
+                 </Link>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full lg:w-auto">
+                 {[
+                   { q: 'Is it fully offline?', a: 'Yes, offline performance is native.' },
+                   { q: 'Can I use any device?', a: 'Mobile, Desktop, or Web ready.' },
+                   { q: 'How many staff members?', a: 'Scalable up to thousands.' },
+                   { q: 'Is my data backed up?', a: 'Instant real-time cloud sync.' }
+                 ].map((item, i) => (
+                   <div key={i} className="p-6 bg-white rounded-3xl border border-slate-100 shadow-sm">
+                      <p className="font-black text-secondary text-sm mb-2">{item.q}</p>
+                      <p className="text-xs text-slate-400 font-bold">{item.a}</p>
+                   </div>
+                 ))}
+              </div>
+           </div>
+        </div>
+      </section>
+
       {/* Final Footer */}
       <footer className="py-24 bg-white border-t border-slate-100">
         <div className="max-w-7xl mx-auto px-8 grid grid-cols-1 md:grid-cols-4 gap-16">
@@ -470,7 +689,7 @@ export default function LandingPage() {
                  <li><Link href="#" className="hover:text-primary transition-colors">POS Terminal</Link></li>
                  <li><Link href="#" className="hover:text-primary transition-colors">Inventory Suite</Link></li>
                  <li><Link href="#" className="hover:text-primary transition-colors">Analytics Pro</Link></li>
-                 <li><Link href="#" className="hover:text-primary transition-colors">Marketplace</Link></li>
+                 <li><Link href="/faq" className="hover:text-primary transition-colors">Help Center / FAQ</Link></li>
               </ul>
            </div>
 

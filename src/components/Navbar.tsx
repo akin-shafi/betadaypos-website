@@ -33,6 +33,7 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-8">
             <a href="/#features" onClick={(e) => handleScroll(e, '/#features')} className="text-sm font-semibold text-slate-600 hover:text-primary transition-colors cursor-pointer">Features</a>
             <a href="/#pricing" onClick={(e) => handleScroll(e, '/#pricing')} className="text-sm font-semibold text-slate-600 hover:text-primary transition-colors cursor-pointer">Pricing</a>
+            <Link href="/faq" className="text-sm font-semibold text-slate-600 hover:text-primary transition-colors">FAQ</Link>
             <Link href="/installer" className="text-sm font-semibold text-slate-600 hover:text-primary transition-colors">Affiliate Installer</Link>
             <Link 
               href="/get-started" 

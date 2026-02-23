@@ -25,8 +25,13 @@ export default function InstallerSplashPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
           <div className="flex flex-col lg:flex-row items-center gap-16">
             <div className="flex-1 space-y-8">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/20 text-primary text-xs font-bold uppercase tracking-widest border border-primary/30">
-                <Award size={14} /> Official Partnership Program
+              <div className="flex flex-col gap-3">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/20 text-primary text-xs font-bold uppercase tracking-widest border border-primary/30 w-fit">
+                  <Award size={14} /> Official Partnership Program
+                </div>
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-slate-300 text-[10px] font-bold uppercase tracking-widest border border-white/10 w-fit">
+                  One license. Use on any device — mobile, desktop, or web.
+                </div>
               </div>
               <h1 className="text-5xl lg:text-6xl font-black text-white leading-tight">
                 Build a Profitable Business as a <span className="text-primary italic">POS Installer</span>
