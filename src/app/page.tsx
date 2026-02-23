@@ -268,7 +268,16 @@ export default function LandingPage() {
                  Core Subscription Plans
               </h3>
               <div className="space-y-6">
-                 {pricing?.plans?.map((plan: any) => (
+                 {(() => {
+                   const filtered = (pricing?.plans || []).filter((plan: any) => {
+                     const t = (plan.type || '').toUpperCase();
+                     if (billingCycle === 'MONTHLY') return t === 'MONTHLY' || t === 'SERVICE_MONTHLY';
+                     if (billingCycle === 'QUARTERLY') return t === 'QUARTERLY' || t === 'SERVICE_QUARTERLY';
+                     if (billingCycle === 'ANNUAL') return t === 'ANNUAL' || t === 'SERVICE_ANNUAL';
+                     return false;
+                   });
+                   const plansToShow = filtered.length > 0 ? filtered : (pricing?.plans || []);
+                   return plansToShow.map((plan: any) => (
                    <div key={plan.type} className="pricing-card p-8 rounded-[2.5rem] bg-white border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all group">
                       <div className="flex justify-between items-center mb-4">
                         <h4 className="text-xl font-black text-secondary">{plan.name}</h4>
@@ -295,7 +304,11 @@ export default function LandingPage() {
                  Premium Power-Ups
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {pricing?.modules?.map((mod: any) => (
+                {pricing?.modules?.map((mod: any) => {
+                   const multiplier = billingCycle === 'ANNUAL' ? 12 : billingCycle === 'QUARTERLY' ? 3 : 1;
+                   const discount = billingCycle === 'ANNUAL' ? 0.85 : billingCycle === 'QUARTERLY' ? 0.9 : 1;
+                   const displayPrice = Math.round(mod.price * multiplier * discount);
+                   return (
                    <div key={mod.type} className="pricing-card p-6 rounded-[2rem] bg-white border border-slate-100 shadow-sm hover:border-teal-200 transition-all group">
                       <div className="flex justify-between items-start mb-3">
                         <h4 className="font-extrabold text-secondary text-sm">{mod.name}</h4>
