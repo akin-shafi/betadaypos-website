@@ -40,11 +40,67 @@ if (typeof window !== 'undefined') {
 
 type BillingCycle = 'MONTHLY' | 'QUARTERLY' | 'ANNUAL';
 
+const BUSINESS_TYPE_MODULES: Record<string, { recommended: string[], visible: string[] }> = {
+  RESTAURANT: {
+    recommended: ['ADVANCED_INVENTORY', 'AUTOMATED_COMPLIANCE', 'DIGITAL_MENU_QR'],
+    visible: ['RECIPE_MANAGEMENT', 'KITCHEN_DISPLAY'],
+  },
+  BAR: {
+    recommended: ['ADVANCED_INVENTORY', 'AUTOMATED_COMPLIANCE', 'DIGITAL_MENU_QR', 'TABLE_MANAGEMENT', 'SAVE_DRAFTS'],
+    visible: ['RECIPE_MANAGEMENT'],
+  },
+  LOUNGE: {
+    recommended: ['ADVANCED_INVENTORY', 'AUTOMATED_COMPLIANCE', 'DIGITAL_MENU_QR', 'TABLE_MANAGEMENT', 'SAVE_DRAFTS'],
+    visible: ['RECIPE_MANAGEMENT', 'KITCHEN_DISPLAY'],
+  },
+  SUPERMARKET: {
+    recommended: ['ADVANCED_INVENTORY', 'AUTOMATED_COMPLIANCE'],
+    visible: ['WHATSAPP_ALERTS'],
+  },
+  RETAIL: {
+    recommended: ['ADVANCED_INVENTORY', 'AUTOMATED_COMPLIANCE'],
+    visible: ['WHATSAPP_ALERTS'],
+  },
+  BOUTIQUE: {
+    recommended: ['ADVANCED_INVENTORY', 'AUTOMATED_COMPLIANCE'],
+    visible: ['WHATSAPP_ALERTS'],
+  },
+  PHARMACY: {
+    recommended: ['ADVANCED_INVENTORY', 'AUTOMATED_COMPLIANCE'],
+    visible: ['WHATSAPP_ALERTS'],
+  },
+  CLINIC: {
+    recommended: ['ADVANCED_INVENTORY', 'AUTOMATED_COMPLIANCE'],
+    visible: ['WHATSAPP_ALERTS'],
+  },
+  BAKERY: {
+    recommended: ['ADVANCED_INVENTORY', 'AUTOMATED_COMPLIANCE', 'RECIPE_MANAGEMENT'],
+    visible: ['KITCHEN_DISPLAY'],
+  },
+  HOTEL: {
+    recommended: ['ADVANCED_INVENTORY', 'AUTOMATED_COMPLIANCE', 'TABLE_MANAGEMENT', 'SAVE_DRAFTS', 'DIGITAL_MENU_QR'],
+    visible: ['KITCHEN_DISPLAY', 'RECIPE_MANAGEMENT'],
+  },
+  FUEL_STATION: {
+    recommended: ['ADVANCED_INVENTORY', 'AUTOMATED_COMPLIANCE', 'BULK_STOCK_MANAGEMENT'],
+    visible: ['WHATSAPP_ALERTS'],
+  },
+  LPG_STATION: {
+    recommended: ['ADVANCED_INVENTORY', 'AUTOMATED_COMPLIANCE', 'BULK_STOCK_MANAGEMENT'],
+    visible: ['WHATSAPP_ALERTS'],
+  },
+  OTHER: {
+    recommended: ['ADVANCED_INVENTORY', 'AUTOMATED_COMPLIANCE'],
+    visible: ['WHATSAPP_ALERTS', 'SAVE_DRAFTS'],
+  }
+};
+
 export default function LandingPage() {
   const [commSettings, setCommSettings] = useState<any>(null);
   const [pricing, setPricing] = useState<any>({ plans: [], modules: [] });
   const [billingCycle, setBillingCycle] = useState<BillingCycle>('MONTHLY');
   const [businessFocus, setBusinessFocus] = useState<'GROWING' | 'BASIC'>('GROWING');
+  const [businessType, setBusinessType] = useState<string>('RETAIL');
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [selectedModules, setSelectedModules] = useState<string[]>([]);
 
@@ -113,6 +169,16 @@ export default function LandingPage() {
       })
       .catch((err) => console.error("Pricing error:", err));
   }, []);
+
+  // Auto-select modules based on business type
+  useEffect(() => {
+    if (businessFocus === 'BASIC') {
+      setSelectedModules([]);
+    } else {
+      const config = BUSINESS_TYPE_MODULES[businessType] || BUSINESS_TYPE_MODULES.OTHER;
+      setSelectedModules(config.recommended);
+    }
+  }, [businessType, businessFocus]);
 
   // Auto-select plan when cycle or focus changes
   useEffect(() => {
@@ -330,8 +396,37 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* Business Type Toggle - Alignment with Web App */}
-          <div className="flex flex-col md:flex-row gap-4 mb-16 p-1 bg-white rounded-2xl md:max-w-md mx-auto shadow-sm border border-slate-100 relative z-10">
+            {/* Business Type Selector */}
+            <div className="max-w-md mx-auto mb-8 space-y-2">
+               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Select Your Industry</label>
+               <div className="relative group">
+                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                    <Store size={16} />
+                 </div>
+                 <select
+                   value={businessType}
+                   onChange={(e) => setBusinessType(e.target.value)}
+                   className="block w-full pl-10 pr-3 py-3 bg-white border border-slate-200 rounded-2xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all appearance-none font-bold cursor-pointer text-sm shadow-sm"
+                 >
+                   <option value="RESTAURANT">Restaurant / Cafe</option>
+                   <option value="BAR">Bar</option>
+                   <option value="LOUNGE">Lounge</option>
+                   <option value="SUPERMARKET">Supermarket</option>
+                   <option value="RETAIL">Retail Store</option>
+                   <option value="FUEL_STATION">Fuel Station</option>
+                   <option value="LPG_STATION">LPG Station</option>
+                   <option value="BAKERY">Bakery</option>
+                   <option value="HOTEL">Hotel</option>
+                   <option value="PHARMACY">Pharmacy</option>
+                   <option value="CLINIC">Clinic</option>
+                   <option value="BOUTIQUE">Boutique</option>
+                   <option value="OTHER">Other Industry</option>
+                 </select>
+               </div>
+            </div>
+
+            {/* Business Focus Toggle */}
+            <div className="flex flex-col md:flex-row gap-4 mb-16 p-1 bg-white rounded-2xl md:max-w-md mx-auto shadow-sm border border-slate-100 relative z-10">
              <button
               type="button"
               onClick={() => {
@@ -457,7 +552,12 @@ export default function LandingPage() {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {pricing?.modules?.map((mod: any) => {
+                {pricing?.modules?.filter((mod: any) => {
+                   const config = BUSINESS_TYPE_MODULES[businessType] || BUSINESS_TYPE_MODULES.OTHER;
+                   return config.recommended.includes(mod.type) || config.visible.includes(mod.type);
+                }).map((mod: any) => {
+                   const config = BUSINESS_TYPE_MODULES[businessType] || BUSINESS_TYPE_MODULES.OTHER;
+                   const isRecommended = config.recommended.includes(mod.type);
                    const multiplier = billingCycle === 'ANNUAL' ? 12 : billingCycle === 'QUARTERLY' ? 3 : 1;
                    const discount = billingCycle === 'ANNUAL' ? 0.85 : billingCycle === 'QUARTERLY' ? 0.9 : 1;
                    const displayPrice = Math.round(mod.price * multiplier * discount);
@@ -481,6 +581,11 @@ export default function LandingPage() {
                        {isSelected && (
                          <div className="absolute -top-2 -right-2 w-6 h-6 bg-teal-500 rounded-full flex items-center justify-center text-white shadow-md z-20">
                            <Check size={14} strokeWidth={3} />
+                         </div>
+                       )}
+                       {isRecommended && !isSelected && (
+                         <div className="absolute -top-2 -right-2 px-2 py-0.5 bg-teal-50 text-[8px] font-black text-teal-600 rounded-full border border-teal-100 shadow-sm z-20">
+                            RECOMMENDED
                          </div>
                        )}
                        <div className="flex justify-between items-start mb-3">
