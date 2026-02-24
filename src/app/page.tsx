@@ -95,13 +95,35 @@ const BUSINESS_TYPE_MODULES: Record<string, { recommended: string[], visible: st
   }
 };
 
+const FALLBACK_PRICING = {
+  plans: [
+    { type: 'MONTHLY', name: 'Standard Monthly', price: 30000, duration_days: 30, description: 'Optimized for 3 staff and 300 products.' },
+    { type: 'QUARTERLY', name: 'Standard Quarterly', price: 81000, duration_days: 90, description: 'Optimized for 7 staff and 1500 products.' },
+    { type: 'ANNUAL', name: 'Standard Annual', price: 300000, duration_days: 365, description: 'Optimized for 15 staff and 5000 products.' },
+    { type: 'SERVICE_MONTHLY', name: 'Basic Sales POS (Monthly)', price: 15000, duration_days: 30, description: 'Strictly for kiosks/LPG/small shops.' },
+    { type: 'SERVICE_QUARTERLY', name: 'Basic Sales POS (Quarterly)', price: 40000, duration_days: 90, description: 'Strictly for kiosks/LPG/small shops.' },
+    { type: 'SERVICE_ANNUAL', name: 'Basic Sales POS (Annual)', price: 150000, duration_days: 365, description: 'Strictly for kiosks/LPG/small shops.' }
+  ],
+  modules: [
+    { type: 'KITCHEN_DISPLAY', name: 'Kitchen Display System (KDS)', price: 5000, description: 'Real-time kitchen order monitor for chefs' },
+    { type: 'TABLE_MANAGEMENT', name: 'Table Management', price: 5000, description: 'Track floor layouts and table status' },
+    { type: 'SAVE_DRAFTS', name: 'Save Drafts', price: 4000, description: 'Save and resume incomplete orders' },
+    { type: 'ADVANCED_INVENTORY', name: 'Advanced Inventory Control', price: 18000, description: 'Batch tracking, shrinkage alerts, and stock history' },
+    { type: 'RECIPE_MANAGEMENT', name: 'Recipe & Cost Control (BOM)', price: 15000, description: 'Ingredient-level cost tracking per item sold' },
+    { type: 'WHATSAPP_ALERTS', name: 'Security & Owner WhatsApp Alerts', price: 8000, description: 'Instant alerts for voids, overrides, refunds, and logins' },
+    { type: 'AUTOMATED_COMPLIANCE', name: 'Automated Compliance & Audit Replay', price: 15000, description: 'Tax-ready reports, audit trail, and activity playback' },
+    { type: 'DIGITAL_MENU_QR', name: 'QR Digital Menu', price: 8000, description: 'Public QR-based digital menu with live product updates' },
+    { type: 'BULK_STOCK_MANAGEMENT', name: 'Bulk Stock & Round Tracking', price: 12000, description: 'Specialized tracking for fuel, gas, and bulk commodities.' }
+  ]
+};
+
 export default function LandingPage() {
   const [commSettings, setCommSettings] = useState<any>(null);
-  const [pricing, setPricing] = useState<any>({ plans: [], modules: [] });
+  const [pricing, setPricing] = useState<any>(FALLBACK_PRICING);
   const [billingCycle, setBillingCycle] = useState<BillingCycle>('MONTHLY');
   const [businessFocus, setBusinessFocus] = useState<'GROWING' | 'BASIC'>('GROWING');
   const [businessType, setBusinessType] = useState<string>('RETAIL');
-  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<string | null>('MONTHLY');
   const [selectedModules, setSelectedModules] = useState<string[]>([]);
 
   const calculateBillingTotal = () => {
@@ -153,16 +175,23 @@ export default function LandingPage() {
     ReferralService.getSettings().then(setCommSettings).catch(() => {});
     
     // Fetch public pricing
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5050/api/v1';
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://betadaypos.onrender.com/api/v1';
     const cleanBaseUrl = baseUrl.endsWith('/api/v1') ? baseUrl : `${baseUrl}/api/v1`;
+    
+    console.log("Fetching pricing from:", cleanBaseUrl);
     
     fetch(`${cleanBaseUrl}/pricing`)
       .then(res => res.ok ? res.json() : Promise.reject('Pricing fetch failed'))
       .then(data => {
-        if (data && data.plans && data.modules) {
-          setPricing(data);
+        if (data && (data.plans || data.modules)) {
+          console.log("Pricing data loaded:", data);
+          setPricing({
+             plans: data.plans || [],
+             modules: data.modules || [],
+             bundles: data.bundles || []
+          });
           // Set default plan
-          if (data.plans.length > 0) {
+          if (data.plans && data.plans.length > 0) {
             setSelectedPlan(data.plans[0].type);
           }
         }
@@ -552,63 +581,75 @@ export default function LandingPage() {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {pricing?.modules?.filter((mod: any) => {
+                {(() => {
                    const config = BUSINESS_TYPE_MODULES[businessType] || BUSINESS_TYPE_MODULES.OTHER;
-                   return config.recommended.includes(mod.type) || config.visible.includes(mod.type);
-                }).map((mod: any) => {
-                   const config = BUSINESS_TYPE_MODULES[businessType] || BUSINESS_TYPE_MODULES.OTHER;
-                   const isRecommended = config.recommended.includes(mod.type);
-                   const multiplier = billingCycle === 'ANNUAL' ? 12 : billingCycle === 'QUARTERLY' ? 3 : 1;
-                   const discount = billingCycle === 'ANNUAL' ? 0.85 : billingCycle === 'QUARTERLY' ? 0.9 : 1;
-                   const displayPrice = Math.round(mod.price * multiplier * discount);
-                   const isSelected = selectedModules.includes(mod.type);
-
-                   return (
-                    <div 
-                      key={mod.type} 
-                      onClick={() => {
-                        if (isSelected) {
-                          setSelectedModules(selectedModules.filter(m => m !== mod.type));
-                        } else {
-                          setSelectedModules([...selectedModules, mod.type]);
-                        }
-                      }}
-                      className={cn(
-                        "pricing-card p-6 rounded-[2rem] bg-white border-2 cursor-pointer transition-all group relative",
-                        isSelected ? "border-teal-500 shadow-md bg-teal-50/10" : "border-slate-100 shadow-sm hover:border-teal-200"
-                      )}
-                    >
-                       {isSelected && (
-                         <div className="absolute -top-2 -right-2 w-6 h-6 bg-teal-500 rounded-full flex items-center justify-center text-white shadow-md z-20">
-                           <Check size={14} strokeWidth={3} />
-                         </div>
-                       )}
-                       {isRecommended && !isSelected && (
-                         <div className="absolute -top-2 -right-2 px-2 py-0.5 bg-teal-50 text-[8px] font-black text-teal-600 rounded-full border border-teal-100 shadow-sm z-20">
-                            RECOMMENDED
-                         </div>
-                       )}
-                       <div className="flex justify-between items-start mb-3">
-                         <h4 className="font-extrabold text-secondary text-sm">{mod.name}</h4>
-                         <div className="text-right">
-                           <span className="text-xs font-black text-teal-600">
-                             ₦{displayPrice.toLocaleString()}
-                           </span>
-                           <p className="text-[8px] font-bold text-slate-400 uppercase">
-                             {billingCycle === 'MONTHLY' ? '/mo' : billingCycle === 'QUARTERLY' ? '/qtr' : '/yr'}
-                           </p>
-                         </div>
-                       </div>
-                       <p className="text-[11px] text-slate-500 leading-relaxed mb-4">{mod.description}</p>
-                       <div className={cn(
-                         "w-8 h-8 rounded-lg flex items-center justify-center transition-all",
-                         isSelected ? "bg-teal-500 text-white" : "bg-teal-50 text-teal-600"
-                       )}>
-                         <ArrowUpRight size={14} />
-                       </div>
-                    </div>
+                   const filteredModules = (pricing?.modules || []).filter((mod: any) => 
+                      config.recommended.includes(mod.type) || config.visible.includes(mod.type)
                    );
-                })}
+
+                   if (pricing?.modules?.length > 0 && filteredModules.length === 0) {
+                      return (
+                        <div className="col-span-full py-20 text-center border-2 border-dashed border-slate-100 rounded-[2.5rem] bg-white">
+                           <p className="text-slate-400 font-bold">Comprehensive standard POS features included.</p>
+                           <p className="text-[10px] text-slate-300 uppercase tracking-widest mt-2">No specialized add-ons required for this industry yet.</p>
+                        </div>
+                      );
+                   }
+
+                   return filteredModules.map((mod: any) => {
+                      const isRecommended = config.recommended.includes(mod.type);
+                      const multiplier = billingCycle === 'ANNUAL' ? 12 : billingCycle === 'QUARTERLY' ? 3 : 1;
+                      const discount = billingCycle === 'ANNUAL' ? 0.85 : billingCycle === 'QUARTERLY' ? 0.9 : 1;
+                      const displayPrice = Math.round(mod.price * multiplier * discount);
+                      const isSelected = selectedModules.includes(mod.type);
+
+                      return (
+                        <div 
+                          key={mod.type} 
+                          onClick={() => {
+                            if (isSelected) {
+                              setSelectedModules(selectedModules.filter(m => m !== mod.type));
+                            } else {
+                              setSelectedModules([...selectedModules, mod.type]);
+                            }
+                          }}
+                          className={cn(
+                            "pricing-card p-6 rounded-[2rem] bg-white border-2 cursor-pointer transition-all group relative",
+                            isSelected ? "border-teal-500 shadow-md bg-teal-50/10" : "border-slate-100 shadow-sm hover:border-teal-200"
+                          )}
+                        >
+                           {isSelected && (
+                             <div className="absolute -top-2 -right-2 w-6 h-6 bg-teal-500 rounded-full flex items-center justify-center text-white shadow-md z-20">
+                               <Check size={14} strokeWidth={3} />
+                             </div>
+                           )}
+                           {isRecommended && !isSelected && (
+                             <div className="absolute -top-2 -right-2 px-2 py-0.5 bg-teal-50 text-[8px] font-black text-teal-600 rounded-full border border-teal-100 shadow-sm z-20">
+                                RECOMMENDED
+                             </div>
+                           )}
+                           <div className="flex justify-between items-start mb-3">
+                             <h4 className="font-extrabold text-secondary text-sm">{mod.name}</h4>
+                             <div className="text-right">
+                               <span className="text-xs font-black text-teal-600">
+                                 ₦{displayPrice.toLocaleString()}
+                               </span>
+                               <p className="text-[8px] font-bold text-slate-400 uppercase">
+                                 {billingCycle === 'MONTHLY' ? '/mo' : billingCycle === 'QUARTERLY' ? '/qtr' : '/yr'}
+                               </p>
+                             </div>
+                           </div>
+                           <p className="text-[11px] text-slate-500 leading-relaxed mb-4">{mod.description}</p>
+                           <div className={cn(
+                             "w-8 h-8 rounded-lg flex items-center justify-center transition-all",
+                             isSelected ? "bg-teal-500 text-white" : "bg-teal-50 text-teal-600"
+                           )}>
+                             <ArrowUpRight size={14} />
+                           </div>
+                        </div>
+                      );
+                   });
+                })()}
               </div>
               )}
               
