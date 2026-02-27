@@ -29,10 +29,16 @@ import {
 import Link from 'next/link';
 import { ReferralService } from '@/services/referral.service';
 import { cn } from '@/lib/utils';
-import { useEffect, useState, useRef } from 'react';
-import { motion, useScroll, useTransform, useSpring, useMotionValue } from 'framer-motion';
+import { useEffect, useState, useRef, useMemo } from 'react';
+import { motion, useScroll, useTransform, useSpring, useMotionValue, AnimatePresence } from 'framer-motion';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { Clock, Tag, X, Sparkles } from 'lucide-react';
+
+const DEADLINE = new Date('2026-03-14T23:59:00+01:00'); // WAT is UTC+1
+const START_DATE = new Date('2026-03-01T00:00:00+01:00');
+
+const IS_PROMO_ENABLED = true;
 
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger);
@@ -122,9 +128,63 @@ export default function LandingPage() {
   const [pricing, setPricing] = useState<any>(FALLBACK_PRICING);
   const [billingCycle, setBillingCycle] = useState<BillingCycle>('MONTHLY');
   const [businessFocus, setBusinessFocus] = useState<'GROWING' | 'BASIC'>('GROWING');
-  const [businessType, setBusinessType] = useState<string>('RETAIL');
+  const [businessType, setBusinessType] = useState<string>('RESTAURANT');
   const [selectedPlan, setSelectedPlan] = useState<string | null>('MONTHLY');
   const [selectedModules, setSelectedModules] = useState<string[]>([]);
+  const [timeLeft, setTimeLeft] = useState<{ days: number, hours: number, minutes: number, seconds: number, isExpired: boolean, isStarted: boolean } | null>(null);
+  const [showPromoModal, setShowPromoModal] = useState(false);
+  const [hasShownPromoModal, setHasShownPromoModal] = useState(false);
+
+  useEffect(() => {
+    const calculateTimeLeft = () => {
+      const now = new Date();
+      const difference = DEADLINE.getTime() - now.getTime();
+      const isExpired = difference <= 0;
+      const isStarted = now.getTime() >= START_DATE.getTime();
+
+      if (difference > 0) {
+        setTimeLeft({
+          days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+          hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+          minutes: Math.floor((difference / 1000 / 60) % 60),
+          seconds: Math.floor((difference / 1000) % 60),
+          isExpired: false,
+          isStarted
+        });
+      } else {
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0, isExpired: true, isStarted: false });
+      }
+    };
+
+    calculateTimeLeft();
+    const timer = setInterval(calculateTimeLeft, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    if (timeLeft?.isExpired || hasShownPromoModal) return;
+
+    const handleScroll = () => {
+      const scrollPercent = (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100;
+      if (scrollPercent > 50 && !hasShownPromoModal) {
+        setShowPromoModal(true);
+        setHasShownPromoModal(true);
+      }
+    };
+
+    const timeTrigger = setTimeout(() => {
+      if (!hasShownPromoModal) {
+        setShowPromoModal(true);
+        setHasShownPromoModal(true);
+      }
+    }, 20000);
+
+    window.addEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      clearTimeout(timeTrigger);
+    };
+  }, [timeLeft, hasShownPromoModal]);
 
   const calculateBillingTotal = () => {
     let total = 0;
@@ -267,96 +327,191 @@ export default function LandingPage() {
         <motion.div style={{ y: y1 }} className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary/20 rounded-full blur-[120px]" />
         <motion.div style={{ y: y2 }} className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-teal-200/20 rounded-full blur-[120px]" />
         
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-          <motion.div 
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-white shadow-xl shadow-teal-500/10 border border-teal-50 text-teal-700 text-sm font-black mb-10 uppercase tracking-wider"
-          >
-            <Rocket size={16} fill="currentColor" strokeWidth={0} className="animate-bounce" />
-            The Future of Commerce is Here
-          </motion.div>
-          
-          <h1 ref={headlineRef} className="text-6xl lg:text-8xl font-black text-secondary tracking-tighter mb-10 leading-[0.9]">
-            Elevate Your <br />
-            <span className="text-primary italic relative">
-               Business
-               <svg className="absolute -bottom-2 left-0 w-full" height="8" viewBox="0 0 100 8" preserveAspectRatio="none">
-                 <motion.path 
-                   d="M0 5 Q50 8 100 5" 
-                   stroke="currentColor" 
-                   strokeWidth="4" 
-                   fill="none"
-                   initial={{ pathLength: 0 }}
-                   animate={{ pathLength: 1 }}
-                   transition={{ duration: 1, delay: 0.5 }}
-                 />
-               </svg>
-            </span>
-          </h1>
-          
-          <p ref={subheadlineRef} className="max-w-3xl mx-auto text-xl lg:text-2xl text-slate-500 font-medium mb-14 leading-relaxed">
-            BETADAY is the hyper-efficient POS ecosystem that turns complex operations into seamless growth. Manage everything from the palm of your hand.
-          </p>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="flex flex-col lg:flex-row items-center gap-16 lg:gap-24">
+            
+            {/* Left Content Column */}
+            <div className="flex-1 text-center lg:text-left pt-10 lg:pt-0">
+              {/* Launch Offer Badge */}
+              {IS_PROMO_ENABLED && timeLeft && !timeLeft.isExpired && (
+                <motion.div 
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-amber-50/80 backdrop-blur-md border border-amber-100 shadow-xl shadow-amber-500/5 mb-8 group cursor-default transition-all hover:border-amber-200"
+                >
+                  <Rocket size={16} className="text-amber-600 animate-pulse group-hover:rotate-12 transition-transform" />
+                  <span className="text-[10px] sm:text-xs font-black text-amber-700 uppercase tracking-[0.2em] flex items-center gap-2">
+                    Exclusive Launch Offer 
+                    <span className="text-amber-300 mx-1">•</span> 
+                    Ending Mar 14
+                  </span>
+                </motion.div>
+              )}
 
-          <div className="hero-cta flex flex-col sm:flex-row justify-center items-center gap-6 mb-24">
-            <Link 
-              href="/get-started" 
-              className="px-10 py-6 bg-secondary text-white rounded-3xl font-black text-xl hover:shadow-[0_20px_50px_rgba(15,23,42,0.3)] hover:-translate-y-2 transition-all flex items-center justify-center gap-3 group relative overflow-hidden"
-            >
-              <span className="relative z-10">Start Your Freedom Trial</span>
-              <ArrowRight className="group-hover:translate-x-2 transition-transform relative z-10" />
-              <div className="absolute inset-0 bg-gradient-to-r from-primary to-teal-500 opacity-0 group-hover:opacity-100 transition-opacity" />
-            </Link>
-            <div className="flex items-center gap-4 text-slate-400 font-bold">
-               <div className="flex -space-x-3">
-                  {[1,2,3,4].map(i => (
-                    <img key={i} className="w-10 h-10 rounded-full border-2 border-white" src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${i+100}`} alt="user" />
-                  ))}
-               </div>
-               <span className="text-sm">Trusted by 1,200+ merchants</span>
+              <h1 ref={headlineRef} className="text-4xl lg:text-[5.5rem] font-black text-secondary tracking-tighter mb-8 leading-[0.85] uppercase">
+                Not Just a <span className="text-primary italic">POS.</span><br />
+                <span className="text-secondary italic relative block mt-2">
+                   Total Business Control.
+                   <svg className="absolute -bottom-4 left-0 w-64 md:w-full" height="12" viewBox="0 0 100 8" preserveAspectRatio="none">
+                     <motion.path 
+                       d="M0 5 Q50 8 100 5" 
+                       stroke="#0d9488" 
+                       strokeWidth="4" 
+                       fill="none"
+                       initial={{ pathLength: 0 }}
+                       animate={{ pathLength: 1 }}
+                       transition={{ duration: 1.5, delay: 1 }}
+                     />
+                   </svg>
+                </span>
+              </h1>
+              
+              <p ref={subheadlineRef} className="max-w-2xl mx-auto lg:mx-0 text-lg lg:text-xl text-slate-500 font-medium mb-12 leading-relaxed">
+                Run your business with real-time inventory control, compliance reporting,
+                staff monitoring, and bulk stock tracking — engineered for high-growth merchants.
+              </p>
+
+              <div className="hero-cta flex flex-col sm:flex-row justify-center lg:justify-start items-center gap-6 mb-12">
+                <button 
+                  onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })}
+                  className="w-full sm:w-auto px-10 py-6 bg-secondary text-white rounded-2xl font-black text-lg hover:shadow-[0_25px_60px_-15px_rgba(15,23,42,0.4)] hover:-translate-y-1.5 transition-all flex items-center justify-center gap-4 group relative overflow-hidden active:scale-95"
+                >
+                  <span className="relative z-10">Activate Your License</span>
+                  <ArrowRight className="group-hover:translate-x-2 transition-transform relative z-10" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-primary to-teal-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </button>
+
+                <Link href="#features" className="w-full sm:w-auto px-10 py-6 border-2 border-slate-100 bg-white text-secondary rounded-2xl font-black text-lg hover:border-primary hover:text-primary transition-all active:scale-95 text-center">
+                  Explore Ecosystem
+                </Link>
+              </div>
+
+              {/* Mini Offer Highlights */}
+              {IS_PROMO_ENABLED && timeLeft && !timeLeft.isExpired && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 1.2 }}
+                  className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-8 border-t border-slate-100 pt-8"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600">
+                      <Tag size={18} />
+                    </div>
+                    <div className="text-left">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Limited Offer</p>
+                      <p className="text-sm font-black text-slate-900 leading-tight">Up to 40% OFF Plans</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
+                      <Clock size={18} />
+                    </div>
+                    <div className="text-left">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Ending In</p>
+                      <p className="text-sm font-black text-slate-900 leading-tight">
+                        {timeLeft.days}d {timeLeft.hours}h {timeLeft.minutes}m
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </div>
+
+            {/* Right Visual Column */}
+            <div className="flex-1 relative w-full pt-10 lg:pt-0">
+               <motion.div 
+                initial={{ x: 100, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ duration: 1, ease: "circOut" }}
+                className="relative perspective-lg"
+               >
+                 <div className="relative transform lg:rotate-[-4deg] lg:hover:rotate-0 transition-transform duration-1000">
+                    <div className="relative rounded-[2.5rem] p-2 bg-gradient-to-br from-primary/20 to-amber-500/20 shadow-[0_50px_100px_-20px_rgba(15,23,42,0.2)] border border-white/50 overflow-hidden">
+                       <img 
+                        src="/dashboard_preview.png" 
+                        alt="BETADAY Dashboard" 
+                        className="w-full rounded-[2.1rem] shadow-sm transform hover:scale-[1.02] transition-transform duration-700"
+                        style={{ objectFit: 'cover' }}
+                       />
+                       
+                       {/* Overlay Elements */}
+                       <div className="absolute inset-0 bg-gradient-to-t from-secondary/20 to-transparent pointer-events-none" />
+                    </div>
+
+                    {/* Floating Indicators */}
+                    <motion.div 
+                      animate={{ y: [0, -15, 0] }}
+                      transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }}
+                      className="absolute -top-6 -right-6 lg:-top-10 lg:-right-10 bg-white p-5 rounded-3xl shadow-2xl border border-slate-50 flex items-center gap-4 animate-fade-in"
+                    >
+                       <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center">
+                          <TrendingUp size={24} />
+                       </div>
+                       <div className="text-left">
+                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Real-time Revenue</p>
+                          <p className="text-2xl font-black text-slate-900">+₦1.2M <span className="text-[10px] text-emerald-500 italic ml-1">Today</span></p>
+                       </div>
+                    </motion.div>
+
+                    <motion.div 
+                      animate={{ y: [0, 15, 0] }}
+                      transition={{ repeat: Infinity, duration: 6, ease: "easeInOut", delay: 1 }}
+                      className="absolute -bottom-6 -left-6 lg:-bottom-10 lg:-left-10 bg-secondary p-5 rounded-3xl shadow-2xl border border-white/10 flex items-center gap-4"
+                    >
+                       <div className="w-12 h-12 bg-primary text-white rounded-2xl flex items-center justify-center">
+                          <ShieldCheck size={24} />
+                       </div>
+                       <div className="text-left">
+                          <p className="text-[10px] font-black text-primary/60 uppercase tracking-widest">Security Status</p>
+                          <p className="text-sm font-black text-white italic">Audit Guard Active</p>
+                       </div>
+                    </motion.div>
+
+                    <motion.div 
+                      animate={{ x: [0, 20, 0] }}
+                      transition={{ repeat: Infinity, duration: 7, ease: "easeInOut", delay: 2 }}
+                      className="absolute top-1/2 -left-12 lg:-left-20 bg-white/90 backdrop-blur-md p-4 rounded-2xl shadow-xl border border-white hidden xl:flex items-center gap-3"
+                    >
+                       <div className="w-8 h-8 bg-amber-50 text-amber-600 rounded-full flex items-center justify-center">
+                          <Users size={16} />
+                       </div>
+                       <div className="text-left">
+                          <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Customer Loyalty</p>
+                          <p className="text-xs font-black text-slate-900">88% Retention Rate</p>
+                       </div>
+                    </motion.div>
+                 </div>
+               </motion.div>
+
+               {/* Countdown Timer Under Image */}
+               {IS_PROMO_ENABLED && timeLeft && !timeLeft.isExpired && (
+                 <motion.div 
+                   initial={{ opacity: 0, y: 30 }}
+                   animate={{ opacity: 1, y: 0 }}
+                   transition={{ delay: 1.5 }}
+                   className="mt-16 flex items-center justify-center lg:justify-end gap-5"
+                 >
+                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] hidden sm:block">Launch Offer Ends In:</p>
+                   <div className="flex items-center gap-3">
+                     {[
+                       { label: 'Days', value: timeLeft.days },
+                       { label: 'Hrs', value: timeLeft.hours },
+                       { label: 'Min', value: timeLeft.minutes },
+                       { label: 'Sec', value: timeLeft.seconds },
+                     ].map((unit, i) => (
+                       <div key={i} className="flex flex-col items-center">
+                         <div className="w-14 h-16 bg-white shadow-xl shadow-slate-200/50 rounded-2xl flex items-center justify-center border border-slate-100">
+                           <span className="text-2xl font-black text-secondary">{unit.value.toString().padStart(2, '0')}</span>
+                         </div>
+                         <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest mt-2">{unit.label}</span>
+                       </div>
+                     ))}
+                   </div>
+                 </motion.div>
+               )}
             </div>
           </div>
-
-          {/* Hero Image Container */}
-          <motion.div 
-            initial={{ y: 100, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            className="relative max-w-6xl mx-auto px-4"
-          >
-            <div className="relative group">
-               {/* Decorative elements */}
-               <div className="absolute -top-10 -left-10 w-32 h-32 bg-primary/10 rounded-3xl -rotate-12 blur-2xl group-hover:rotate-0 transition-all duration-700" />
-               <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-teal-400/10 rounded-full blur-3xl group-hover:scale-125 transition-all duration-700" />
-               
-               <div className="relative rounded-[3rem] p-2 bg-white shadow-[0_50px_100px_-20px_rgba(15,23,42,0.15)] border border-slate-100 overflow-hidden">
-                  <img 
-                    src="/dashboard_preview.png" 
-                    alt="BETADAY Dashboard" 
-                    className="w-full rounded-[2.5rem] shadow-sm transform group-hover:scale-[1.02] transition-transform duration-700"
-                  />
-                  
-                  {/* Floating Stats */}
-                  <motion.div 
-                    animate={{ y: [0, -20, 0] }}
-                    transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
-                    className="absolute top-10 right-10 bg-white/90 backdrop-blur-md p-6 rounded-3xl shadow-2xl border border-white hidden lg:block"
-                  >
-                     <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center">
-                           <TrendingUp />
-                        </div>
-                        <div>
-                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Revenue Up</p>
-                           <p className="text-2xl font-black text-slate-900">+42.8%</p>
-                        </div>
-                     </div>
-                  </motion.div>
-               </div>
-            </div>
-          </motion.div>
         </div>
       </section>
 
@@ -901,6 +1056,67 @@ export default function LandingPage() {
            </div>
         </div>
       </footer>
+      {/* Promotion Modal */}
+      <AnimatePresence>
+        {IS_PROMO_ENABLED && showPromoModal && timeLeft && !timeLeft.isExpired && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowPromoModal(false)}
+              className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 40 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 40 }}
+              className="relative bg-white rounded-[3.5rem] w-full max-w-xl overflow-hidden shadow-[0_100px_100px_-50px_rgba(0,0,0,0.5)] p-0 text-center"
+            >
+              <div className="h-4 bg-amber-500 w-full" />
+              <div className="px-10 pb-12 pt-16">
+                <button 
+                  onClick={() => setShowPromoModal(false)}
+                  className="absolute top-8 right-8 p-3 text-slate-400 hover:text-slate-900 transition-all hover:bg-slate-50 rounded-full"
+                >
+                  <X size={20} />
+                </button>
+
+                <div className="w-20 h-20 bg-amber-50 rounded-[2rem] flex items-center justify-center text-amber-500 mx-auto mb-8 shadow-inner">
+                  <Sparkles size={36} />
+                </div>
+
+                <h3 className="text-4xl lg:text-5xl font-black text-slate-900 tracking-tighter mb-4 leading-[0.9] uppercase italic">
+                  Launch Offer <br />
+                  <span className="text-primary">EARLY ACCESS SAVINGS</span>
+                </h3>
+                
+                <p className="text-slate-500 font-bold text-lg mb-10 leading-relaxed tracking-tight max-w-sm mx-auto">
+                  Get <span className="text-primary font-black">20% off Quarterly</span> or <span className="text-primary font-black">40% off Annual</span> licenses during our March rollout.
+                </p>
+
+                <div className="space-y-4">
+                  <button 
+                    onClick={() => {
+                      setShowPromoModal(false);
+                      document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    className="w-full py-6 bg-secondary text-white rounded-2xl font-black uppercase tracking-[0.2em] text-xs hover:shadow-2xl hover:shadow-secondary/20 transition-all flex items-center justify-center gap-4 group active:scale-95"
+                  >
+                    Activate Pre-Launch Savings
+                    <ArrowRight size={16} className="group-hover:translate-x-3 transition-transform" />
+                  </button>
+                  <div className="flex justify-center gap-6 opacity-40">
+                    <div className="flex flex-col"><span className="text-sm font-black text-slate-900">{timeLeft.days}D</span><span className="text-[7px] font-bold text-slate-400 uppercase">Days</span></div>
+                    <div className="flex flex-col"><span className="text-sm font-black text-slate-900">{timeLeft.hours}H</span><span className="text-[7px] font-bold text-slate-400 uppercase">Hours</span></div>
+                    <div className="flex flex-col"><span className="text-sm font-black text-slate-900">{timeLeft.minutes}M</span><span className="text-[7px] font-bold text-slate-400 uppercase">Min</span></div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
