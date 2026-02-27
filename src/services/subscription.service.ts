@@ -26,8 +26,13 @@ export interface ModuleBundle {
 
 export const SubscriptionService = {
   getPricing: async (): Promise<{ plans: SubscriptionPlan[], modules: ModulePlan[], bundles: ModuleBundle[] }> => {
-    // Note: This endpoint is public in the backend
     const response = await apiClient.get('/pricing');
+    return response.data;
+  },
+
+  getActivePromotion: async (): Promise<any> => {
+    // This is public as well
+    const response = await apiClient.get('/active-promotion');
     return response.data;
   },
 

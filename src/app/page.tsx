@@ -126,6 +126,7 @@ const FALLBACK_PRICING = {
 export default function LandingPage() {
   const [commSettings, setCommSettings] = useState<any>(null);
   const [pricing, setPricing] = useState<any>(FALLBACK_PRICING);
+  const [activePromotion, setActivePromotion] = useState<any>(null);
   const [billingCycle, setBillingCycle] = useState<BillingCycle>('MONTHLY');
   const [businessFocus, setBusinessFocus] = useState<'GROWING' | 'BASIC'>('GROWING');
   const [businessType, setBusinessType] = useState<string>('RESTAURANT');
@@ -138,9 +139,14 @@ export default function LandingPage() {
   useEffect(() => {
     const calculateTimeLeft = () => {
       const now = new Date();
-      const difference = DEADLINE.getTime() - now.getTime();
+      
+      // Use dynamic dates from activePromotion if available, otherwise fallback
+      const deadline = activePromotion ? new Date(activePromotion.end_date) : DEADLINE;
+      const startDate = activePromotion ? new Date(activePromotion.start_date) : START_DATE;
+
+      const difference = deadline.getTime() - now.getTime();
       const isExpired = difference <= 0;
-      const isStarted = now.getTime() >= START_DATE.getTime();
+      const isStarted = now.getTime() >= startDate.getTime();
 
       if (difference > 0) {
         setTimeLeft({
@@ -159,7 +165,7 @@ export default function LandingPage() {
     calculateTimeLeft();
     const timer = setInterval(calculateTimeLeft, 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [activePromotion]);
 
   useEffect(() => {
     if (timeLeft?.isExpired || hasShownPromoModal) return;
@@ -200,7 +206,13 @@ export default function LandingPage() {
     // Modules
     if (businessFocus === 'GROWING') {
       const multiplier = billingCycle === 'ANNUAL' ? 12 : billingCycle === 'QUARTERLY' ? 3 : 1;
-      const discount = billingCycle === 'ANNUAL' ? 0.85 : billingCycle === 'QUARTERLY' ? 0.9 : 1;
+      
+      // Dynamic discount from promotion
+      let discount = billingCycle === 'ANNUAL' ? 0.85 : billingCycle === 'QUARTERLY' ? 0.9 : 1;
+      if (activePromotion) {
+         if (billingCycle === 'QUARTERLY') discount = (100 - activePromotion.quarterly_discount) / 100;
+         else if (billingCycle === 'ANNUAL') discount = (100 - activePromotion.annual_discount) / 100;
+      }
       
       selectedModules.forEach(modType => {
         const mod = pricing.modules.find((m: any) => m.type === modType);
@@ -234,29 +246,43 @@ export default function LandingPage() {
   useEffect(() => {
     ReferralService.getSettings().then(setCommSettings).catch(() => {});
     
-    // Fetch public pricing
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://betadaypos.onrender.com/api/v1';
-    const cleanBaseUrl = baseUrl.endsWith('/api/v1') ? baseUrl : `${baseUrl}/api/v1`;
-    
-    console.log("Fetching pricing from:", cleanBaseUrl);
-    
-    fetch(`${cleanBaseUrl}/pricing`)
-      .then(res => res.ok ? res.json() : Promise.reject('Pricing fetch failed'))
-      .then(data => {
-        if (data && (data.plans || data.modules)) {
-          console.log("Pricing data loaded:", data);
-          setPricing({
-             plans: data.plans || [],
-             modules: data.modules || [],
-             bundles: data.bundles || []
-          });
-          // Set default plan
-          if (data.plans && data.plans.length > 0) {
-            setSelectedPlan(data.plans[0].type);
-          }
+    // Fetch public pricing and active promotion
+    const fetchData = async () => {
+      try {
+        const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://betadaypos.onrender.com/api/v1';
+        const cleanBaseUrl = baseUrl.endsWith('/api/v1') ? baseUrl : `${baseUrl}/api/v1`;
+        
+        console.log("Fetching landing data from:", cleanBaseUrl);
+        
+        const [pricingRes, promoRes] = await Promise.allSettled([
+           fetch(`${cleanBaseUrl}/pricing`),
+           fetch(`${cleanBaseUrl}/active-promotion`)
+        ]);
+
+        if (pricingRes.status === 'fulfilled' && pricingRes.value.ok) {
+           const data = await pricingRes.value.json();
+           if (data && (data.plans || data.modules)) {
+             setPricing({
+                plans: data.plans || [],
+                modules: data.modules || [],
+                bundles: data.bundles || []
+             });
+             if (data.plans && data.plans.length > 0) {
+               setSelectedPlan(data.plans[0].type);
+             }
+           }
         }
-      })
-      .catch((err) => console.error("Pricing error:", err));
+
+        if (promoRes.status === 'fulfilled' && promoRes.value.ok) {
+           const promo = await promoRes.value.json();
+           setActivePromotion(promo);
+        }
+      } catch (err) {
+        console.error("Data load error:", err);
+      }
+    };
+
+    fetchData();
   }, []);
 
   // Auto-select modules based on business type
@@ -291,6 +317,8 @@ export default function LandingPage() {
   const y2 = useTransform(scrollY, [0, 500], [0, -150]);
 
   useEffect(() => {
+    if (!pricing) return;
+
     // GSAP Scroll Animations
     const ctx = gsap.context(() => {
       // Hero Entrance
@@ -304,18 +332,20 @@ export default function LandingPage() {
         scrollTrigger: {
           trigger: "#pricing",
           start: "top 75%",
+          toggleActions: "play none none reverse"
         },
         y: 50,
         opacity: 0,
         duration: 0.8,
-        stagger: 0.1,
-        ease: "back.out(1.2)"
+        stagger: 0.05,
+        ease: "back.out(1.2)",
+        clearProps: "all" // Ensure styles are cleared after animation
       });
 
     }, heroRef);
 
     return () => ctx.revert();
-  }, []);
+  }, [pricing]); // Re-run when pricing data updates
 
   return (
     <div className="min-h-screen bg-[#fcfdfe]" ref={heroRef}>
@@ -341,9 +371,9 @@ export default function LandingPage() {
                 >
                   <Rocket size={16} className="text-amber-600 animate-pulse group-hover:rotate-12 transition-transform" />
                   <span className="text-[10px] sm:text-xs font-black text-amber-700 uppercase tracking-[0.2em] flex items-center gap-2">
-                    Exclusive Launch Offer 
+                    {activePromotion ? activePromotion.name : 'Exclusive Launch Offer'}
                     <span className="text-amber-300 mx-1">•</span> 
-                    Ending Mar 14
+                    {timeLeft.isExpired ? 'Offer Ended' : `Ending ${activePromotion ? new Date(activePromotion.end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Mar 14'}`}
                   </span>
                 </motion.div>
               )}
@@ -400,7 +430,9 @@ export default function LandingPage() {
                     </div>
                     <div className="text-left">
                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Limited Offer</p>
-                      <p className="text-sm font-black text-slate-900 leading-tight">Up to 40% OFF Plans</p>
+                      <p className="text-sm font-black text-slate-900 leading-tight">
+                        Up to {activePromotion ? activePromotion.annual_discount : 40}% OFF Plans
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
