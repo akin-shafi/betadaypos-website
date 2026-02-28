@@ -1063,9 +1063,9 @@ export default function LandingPage() {
            <div className="space-y-6">
               <h4 className="font-black text-secondary uppercase text-xs tracking-widest">Ecosystem</h4>
               <ul className="space-y-4 text-slate-500 font-bold">
-                 <li><Link href="#" className="hover:text-primary transition-colors">POS Terminal</Link></li>
-                 <li><Link href="#" className="hover:text-primary transition-colors">Inventory Suite</Link></li>
-                 <li><Link href="#" className="hover:text-primary transition-colors">Analytics Pro</Link></li>
+                 <li><Link href="/features#pos" className="hover:text-primary transition-colors">POS Terminal</Link></li>
+                 <li><Link href="/features#inventory" className="hover:text-primary transition-colors">Inventory Suite</Link></li>
+                 <li><Link href="/features#analytics" className="hover:text-primary transition-colors">Analytics Pro</Link></li>
                  <li><Link href="/faq" className="hover:text-primary transition-colors">Help Center / FAQ</Link></li>
               </ul>
            </div>
@@ -1073,18 +1073,18 @@ export default function LandingPage() {
            <div className="space-y-6">
               <h4 className="font-black text-secondary uppercase text-xs tracking-widest">Inquire</h4>
               <ul className="space-y-4 text-slate-500 font-bold">
-                 <li><Link href="#" className="hover:text-primary transition-colors">Enterprise</Link></li>
+                 <li><Link href="/enterprise" className="hover:text-primary transition-colors">Enterprise</Link></li>
                  <li><Link href="/installer" className="hover:text-primary transition-colors">Affiliate</Link></li>
-                 <li><Link href="#" className="hover:text-primary transition-colors">Security</Link></li>
-                 <li><Link href="#" className="hover:text-primary transition-colors">API Docs</Link></li>
+                 <li><Link href="/security" className="hover:text-primary transition-colors">Security</Link></li>
+                 <li><Link href="mailto:support@betadaypos.com" className="hover:text-primary transition-colors">Support</Link></li>
               </ul>
            </div>
         </div>
         <div className="max-w-7xl mx-auto px-8 mt-24 pt-12 border-t border-slate-50 flex flex-col md:flex-row justify-between items-center gap-8 text-slate-400 font-bold text-sm">
            <p>&copy; 2026 BETADAY TECHNOLOGIES. BUILT FOR SCALE.</p>
            <div className="flex gap-8">
-              <Link href="#" className="hover:text-secondary">Privacy Policy</Link>
-              <Link href="#" className="hover:text-secondary">Terms of Service</Link>
+              <Link href="/privacy" className="hover:text-secondary">Privacy Policy</Link>
+              <Link href="/terms" className="hover:text-secondary">Terms of Service</Link>
            </div>
         </div>
       </footer>
