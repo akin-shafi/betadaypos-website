@@ -48,7 +48,7 @@ export default function FeaturesPage() {
                     </ul>
                  </div>
                  <div className="flex-1 bg-slate-100 rounded-[3rem] p-4 border border-slate-200 shadow-inner">
-                    <img src="/pos_preview.png" alt="POS Interface" className="rounded-[2.5rem] w-full shadow-2xl" />
+                    <img src="/pos_desktop_preview.png" alt="POS Interface" className="rounded-[2.5rem] w-full shadow-2xl" />
                  </div>
               </div>
            </div>
