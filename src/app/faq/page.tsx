@@ -64,6 +64,53 @@ const faqs = [
         a: "Absolutely. Our 'Force Multiplier' staff management system allows you to create custom roles with specific permissions. You can control who can void transactions, view reports, or edit inventory."
       }
     ]
+  },
+  {
+    category: "Modules & Features",
+    questions: [
+      {
+        q: "What is the Kitchen Display System (KDS)?",
+        a: "The KDS is a digital monitor for your kitchen team. Instead of messy paper tickets, orders from the POS appear instantly on a screen, allowing chefs to track preparation times and mark items as ready. It's essential for high-volume restaurants and bars."
+      },
+      {
+        q: "Can I track multiple inventory batches and expiration dates?",
+        a: "Yes. Our Advanced Inventory module allows for batch-level tracking. You can record different cost prices per batch, track expiration dates, and get automated alerts before products expire."
+      },
+      {
+        q: "What are WhatsApp Business Alerts?",
+        a: "Stay connected to your business regardless of where you are. Get instant WhatsApp notifications for critical actions like high-value voids, cash drawer openings, staff logins, or end-of-day sales summaries."
+      }
+    ]
+  },
+  {
+    category: "Setup & Deployment",
+    questions: [
+      {
+        q: "How do I get BETADAY installed in my business?",
+        a: "You can sign up directly on our website and start using the web version instantly. For hardware setup and local network configuration, we recommend contacting one of our Certified Affiliate Installers via the 'Find Installer' page."
+      },
+      {
+        q: "What kind of hardware is compatible?",
+        a: "BETADAY is hardware-agnostic. It works with most standard 80mm and 58mm thermal printers (USB, Bluetooth, or LAN), USB barcode scanners, and traditional cash drawers."
+      },
+      {
+        q: "Does it work on Mac, Windows, and Linux?",
+        a: "Yes! Our Desktop client is cross-platform. You can also run the entire system through any modern web browser like Chrome, Safari, or Edge."
+      }
+    ]
+  },
+  {
+    category: "Affiliate Program",
+    questions: [
+      {
+        q: "How much do I earn as a Certified Installer?",
+        a: "Affiliates earn up to 15% commission on every license renewal for the lifetime of the business they onboard. Additionally, you keep 100% of your service fees for hardware installation and local support."
+      },
+      {
+        q: "How do I withdraw my earnings?",
+        a: "Earnings are tracked in your Affiliate Dashboard. Payouts are processed every Friday directly to your registered bank account once your balance exceeds ₦5,000."
+      }
+    ]
   }
 ];
 
