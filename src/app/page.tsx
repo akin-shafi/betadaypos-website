@@ -289,7 +289,7 @@ export default function LandingPage() {
       {/* Trust Bar */}
       <div className="border-y border-slate-100 bg-white py-12">
          <div className="max-w-7xl mx-auto px-8 flex flex-wrap justify-center lg:justify-between items-center gap-12 grayscale opacity-40 hover:grayscale-0 hover:opacity-100 transition-all">
-            {['ZENITH', 'STRIPE', 'PAYSTACK', 'MASTERCARD', 'VISA'].map(brand => (
+            {['OPAY', 'MONNIFY', 'MONIEPOINT', 'PALMPAY', 'BANK TRANSFERS'].map(brand => (
               <span key={brand} className="text-2xl font-black italic tracking-tighter text-secondary">{brand}</span>
             ))}
          </div>
