@@ -18,47 +18,45 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 
 interface PricingComparisonTableProps {
-  billingCycle: 'MONTHLY' | 'QUARTERLY' | 'ANNUAL';
+  billingCycle: 'MONTHLY' | 'ANNUAL';
 }
 
 const PricingComparisonTable = ({ billingCycle }: PricingComparisonTableProps) => {
   const getCyclePrice = (base: number) => {
-    if (billingCycle === 'ANNUAL') return (base * 10).toLocaleString();
-    if (billingCycle === 'QUARTERLY') return (base * 2.7).toLocaleString();
+    if (billingCycle === 'ANNUAL') return (base * 8).toLocaleString();
     return base.toLocaleString();
   };
 
   const getCycleLabel = () => {
     if (billingCycle === 'ANNUAL') return 'per year';
-    if (billingCycle === 'QUARTERLY') return 'per 90 days';
     return 'per month';
   };
 
   const tiers = [
     { 
-        name: 'Lite Station', 
-        price: getCyclePrice(15000), 
-        desc: 'Ideal for kiosks & small shops.',
+        name: 'Essential Architecture', 
+        price: getCyclePrice(12500), 
+        desc: 'Core control for small teams.',
         color: 'bg-slate-50' 
     },
     { 
-        name: 'Standard POS', 
-        price: getCyclePrice(30000), 
-        desc: 'Complete control for retail stores.',
+        name: 'Growth Architecture', 
+        price: getCyclePrice(25000), 
+        desc: 'Advanced tools for growing businesses.',
         popular: true,
         color: 'bg-primary/5' 
     },
     { 
-        name: 'Premium Cloud', 
+        name: 'Scale Architecture', 
         price: getCyclePrice(45000), 
-        desc: 'Advanced auditing and automation.',
+        desc: 'High-performance for large enterprises.',
         recommended: true,
         color: 'bg-secondary/5' 
     },
     { 
-        name: 'Enterprise', 
-        price: 'Custom', 
-        desc: 'Scalable multi-location solution.',
+        name: 'Enterprise Architecture', 
+        price: 'Architected', 
+        desc: 'Scalable multi-location engine.',
         color: 'bg-slate-900' 
     },
   ];
@@ -99,9 +97,9 @@ const PricingComparisonTable = ({ billingCycle }: PricingComparisonTableProps) =
       name: 'Ownership & Control',
       icon: LayoutDashboard,
       features: [
-        { name: 'Staff Member Limit', helper: 'Accounts for your employees', plans: ['2', '7', '15', 'Unlimited'] },
-        { name: 'Product Capacity', helper: 'Max quantity of items in stock', plans: ['100', '1,500', '5,000', 'Unlimited'] },
-        { name: 'WhatsApp Alerts', helper: 'Get alerts on your phone for every sale/void', plans: [false, 'Module', true, true] },
+        { name: 'Staff Member Limit', helper: 'Accounts for your employees', plans: ['3', '10', '50', 'Unlimited'] },
+        { name: 'Product Capacity', helper: 'Max quantity of items in stock', plans: ['500', '2,500', '15,000', 'Unlimited'] },
+        { name: 'WhatsApp Alerts', helper: 'Get alerts on your phone for every sale/void', plans: [true, true, true, true] },
         { name: 'Activity Replay', helper: 'Step-by-step playback of any cashier action', plans: [false, 'Module', true, true] },
       ]
     },

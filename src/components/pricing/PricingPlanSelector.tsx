@@ -4,7 +4,7 @@ import { Rocket, Check, ArrowUpRight, ShieldCheck, Store, Zap, LayoutDashboard, 
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 
-type BillingCycle = 'MONTHLY' | 'QUARTERLY' | 'ANNUAL';
+type BillingCycle = 'MONTHLY' | 'ANNUAL';
 
 interface Plan {
   type: string;
@@ -21,7 +21,6 @@ interface PricingPlanSelectorProps {
   selectedPlan: string | null;
   onSelectPlan: (type: string) => void;
   billingCycle: BillingCycle;
-  businessFocus: 'GROWING' | 'BASIC';
 }
 
 export default function PricingPlanSelector({
@@ -29,62 +28,96 @@ export default function PricingPlanSelector({
   selectedPlan,
   onSelectPlan,
   billingCycle,
-  businessFocus
 }: PricingPlanSelectorProps) {
   const filtered = plans.filter((plan) => {
     const t = (plan.type || '').toUpperCase();
-    const isService = t.includes('SERVICE');
-    
-    // Filter based on focus
-    if (businessFocus === 'BASIC') {
-       if (!isService) return false;
-    } else {
-       if (isService) return false;
-    }
-
-    if (billingCycle === 'MONTHLY') return t === 'MONTHLY' || t === 'SERVICE_MONTHLY';
-    if (billingCycle === 'QUARTERLY') return t === 'QUARTERLY' || t === 'SERVICE_QUARTERLY';
-    if (billingCycle === 'ANNUAL') return t === 'ANNUAL' || t === 'SERVICE_ANNUAL';
-    return false;
+    return t.includes(billingCycle);
   });
   
-  const plansToShow = filtered.length > 0 ? filtered : plans;
-  
+  const getIcon = (type: string) => {
+    if (type.includes('ESSENTIAL')) return <Store size={24} />;
+    if (type.includes('GROWTH')) return <Zap size={24} />;
+    if (type.includes('SCALE')) return <ShieldCheck size={24} />;
+    return <Rocket size={24} />;
+  };
+
+  const getTierColor = (type: string) => {
+    if (type.includes('ESSENTIAL')) return 'bg-amber-500';
+    if (type.includes('GROWTH')) return 'bg-primary';
+    if (type.includes('SCALE')) return 'bg-emerald-500';
+    return 'bg-secondary';
+  };
+
   return (
-    <div className="space-y-6">
-      {plansToShow.map((plan) => {
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      {filtered.map((plan) => {
         const isSelected = selectedPlan === plan.type;
+        const isGrowth = plan.type.includes('GROWTH');
+
         return (
           <div 
             key={plan.type} 
             onClick={() => onSelectPlan(plan.type)}
             className={cn(
-              "pricing-card p-8 rounded-[2.5rem] bg-white border-2 cursor-pointer transition-all group relative",
-              isSelected ? "border-primary shadow-xl ring-4 ring-primary/5" : "border-slate-100 shadow-sm hover:border-slate-200"
+              "p-10 rounded-[3rem] bg-white border-4 cursor-pointer transition-all relative group flex flex-col",
+              isSelected 
+                ? "border-primary shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)] scale-105" 
+                : "border-slate-50 shadow-sm hover:border-slate-200 hover:scale-[1.02]"
             )}
           >
-            {isSelected && (
-              <div className="absolute -top-3 -right-3 w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white shadow-lg z-20">
-                <Check size={18} strokeWidth={3} />
+            {isGrowth && (
+              <div className="absolute -top-5 left-1/2 -translate-x-1/2 bg-secondary text-white text-[10px] font-black px-6 py-2 rounded-full shadow-xl tracking-[0.2em] whitespace-nowrap">
+                RECOMMENDED
               </div>
             )}
-            <div className="flex justify-between items-center mb-4">
-              <h4 className="text-xl font-black text-secondary">{plan.name}</h4>
-              <div className="text-right">
-                <p className="text-2xl font-black text-primary">₦{plan.price.toLocaleString()}</p>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">/ {plan.duration_days} DAYS</p>
-              </div>
+
+            <div className={cn(
+                "w-16 h-16 rounded-3xl flex items-center justify-center text-white mb-8 transition-transform group-hover:scale-110",
+                getTierColor(plan.type)
+            )}>
+                {getIcon(plan.type)}
             </div>
-            <p className="text-slate-500 mb-6 text-sm italic">{plan.description || `Optimized for ${plan.user_limit} staff and ${plan.product_limit} products.`}</p>
-            <div className="flex flex-wrap gap-4">
-              <span className="px-3 py-1 bg-slate-50 rounded-lg text-[10px] font-black text-slate-400 uppercase tracking-tighter">OFFLINE ACCESS</span>
-              <span className="px-3 py-1 bg-slate-50 rounded-lg text-[10px] font-black text-slate-400 uppercase tracking-tighter">CLOUD SYNC</span>
-              <span className="px-3 py-1 bg-slate-50 rounded-lg text-[10px] font-black text-slate-400 uppercase tracking-tighter">CORE REPORTS</span>
-              {billingCycle !== 'MONTHLY' && (
-                <span className="px-3 py-1 bg-teal-50 rounded-lg text-[10px] font-black text-teal-600 uppercase tracking-tighter animate-pulse">
-                  {billingCycle === 'ANNUAL' ? 'SAVE 15%' : 'SAVE 10%'}
-                </span>
+
+            <h4 className="text-2xl font-black text-secondary mb-2 tracking-tight">{plan.name.split(' ')[0]}</h4>
+            <div className="mb-6">
+              <div className="flex items-baseline gap-1">
+                <span className="text-4xl font-black text-secondary tracking-tighter">₦{plan.price.toLocaleString()}</span>
+                <span className="text-slate-400 font-bold text-xs uppercase tracking-widest">/ {billingCycle === 'ANNUAL' ? 'YEAR' : 'MO'}</span>
+              </div>
+              {billingCycle === 'ANNUAL' && (
+                  <p className="text-[10px] font-black text-primary uppercase mt-1">Billed annually • Save 20%</p>
               )}
+            </div>
+
+            <p className="text-slate-500 mb-8 text-base font-medium leading-relaxed italic grow">{plan.description}</p>
+            
+            <div className="space-y-4 pt-6 border-t border-slate-50">
+               <div className="flex items-center gap-3">
+                  <div className="w-5 h-5 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-500">
+                     <Check size={12} strokeWidth={4} />
+                  </div>
+                  <span className="text-xs font-bold text-slate-600">{plan.user_limit || 3} System Users</span>
+               </div>
+               <div className="flex items-center gap-3">
+                  <div className="w-5 h-5 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-500">
+                     <Check size={12} strokeWidth={4} />
+                  </div>
+                  <span className="text-xs font-bold text-slate-600">{plan.product_limit || 500} Products Index</span>
+               </div>
+               <div className="flex items-center gap-3">
+                  <div className="w-5 h-5 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-500">
+                     <Check size={12} strokeWidth={4} />
+                  </div>
+                  <span className="text-xs font-bold text-slate-600">Enterprise Cloud Backup</span>
+               </div>
+            </div>
+
+            <div className={cn(
+                "mt-8 w-full py-4 rounded-2xl font-black text-xs tracking-widest uppercase transition-all flex items-center justify-center gap-2",
+                isSelected ? "bg-primary text-white shadow-lg shadow-primary/20" : "bg-slate-100 text-slate-400 group-hover:bg-slate-200 group-hover:text-secondary"
+            )}>
+                {isSelected ? 'PLAN ACTIVATED' : 'SELECT ARCHITECTURE'}
+                <ArrowRight size={14} />
             </div>
           </div>
         );
