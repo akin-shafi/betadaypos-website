@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import Navbar from '@/components/Navbar';
 import Link from 'next/link';
 import { 
@@ -12,7 +12,7 @@ import {
   ShieldCheck,
   LayoutDashboard
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useInView } from 'framer-motion';
 import PricingPlanSelector from '@/components/pricing/PricingPlanSelector';
 import PricingModuleSelector from '@/components/pricing/PricingModuleSelector';
 import PricingComparisonTable from '@/components/pricing/PricingComparisonTable';
@@ -67,6 +67,9 @@ export default function PricingPage() {
   const [businessType, setBusinessType] = useState<string>('RESTAURANT');
   const [selectedPlan, setSelectedPlan] = useState<string | null>('MONTHLY');
   const [selectedModules, setSelectedModules] = useState<string[]>([]);
+  
+  const comparisonRef = useRef(null);
+  const isInIndex = useInView(comparisonRef, { amount: 0.1 });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -325,7 +328,7 @@ export default function PricingPage() {
             </section>
           </div>
 
-          <div className="mt-32 pt-32 border-t border-slate-100">
+          <div ref={comparisonRef} className="mt-32 pt-32 border-t border-slate-100">
             <div className="text-center mb-20 max-w-3xl mx-auto">
               <span className="text-xs font-black text-primary uppercase tracking-[0.4em]">Zero-Trust Standard</span>
               <h2 className="text-5xl font-black text-secondary tracking-tighter mt-4 mb-6 uppercase italic">Full Comparison <span className="text-primary italic">Index.</span></h2>
@@ -339,6 +342,7 @@ export default function PricingPage() {
       </main>
 
       <PricingSummary 
+        hide={isInIndex}
         businessFocus={businessFocus}
         selectedPlanName={selectedPlanName}
         selectedModulesCount={selectedModules.length}
