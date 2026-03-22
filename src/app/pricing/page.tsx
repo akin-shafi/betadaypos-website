@@ -12,11 +12,8 @@ import {
   ShieldCheck,
   LayoutDashboard
 } from 'lucide-react';
-import { motion, AnimatePresence, useInView } from 'framer-motion';
-import PricingPlanSelector from '@/components/pricing/PricingPlanSelector';
-import PricingModuleSelector from '@/components/pricing/PricingModuleSelector';
+import { motion, useInView } from 'framer-motion';
 import PricingComparisonTable from '@/components/pricing/PricingComparisonTable';
-import PricingSummary from '@/components/pricing/PricingSummary';
 import { cn } from '@/lib/utils';
 
 type BillingCycle = 'MONTHLY' | 'ANNUAL';
@@ -67,11 +64,6 @@ export default function PricingPage() {
 
   // User Selection State
   const [billingCycle, setBillingCycle] = useState<BillingCycle>('MONTHLY');
-  const [businessFocus, setBusinessFocus] = useState<'GROWING' | 'BASIC'>('GROWING');
-  const [businessType, setBusinessType] = useState<string>('RESTAURANT');
-  const [selectedPlan, setSelectedPlan] = useState<string | null>('GROWTH_MONTHLY');
-  const [selectedTier, setSelectedTier] = useState<'ESSENTIAL' | 'GROWTH' | 'SCALE'>('GROWTH');
-  const [selectedModules, setSelectedModules] = useState<string[]>([]);
   
   const comparisonRef = useRef(null);
   const isInIndex = useInView(comparisonRef, { amount: 0.1 });
@@ -81,15 +73,6 @@ export default function PricingPage() {
       try {
         const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://betadaypos.onrender.com/api/v1';
         
-        // Fetch Pricing
-        const pricingRes = await fetch(`${baseUrl}/pricing`);
-        if (pricingRes.ok) {
-          const data = await pricingRes.json();
-          setPricing(data);
-        } else {
-          setPricing(FALLBACK_PRICING);
-        }
-
         // Fetch Promotion
         const promoRes = await fetch(`${baseUrl}/active-promotion`);
         if (promoRes.ok) {
@@ -99,78 +82,12 @@ export default function PricingPage() {
 
         setLoading(false);
       } catch (err) {
-        setPricing(FALLBACK_PRICING);
         setLoading(false);
       }
     };
 
     fetchData();
   }, []);
-
-  // Auto-select modules based on business type
-  useEffect(() => {
-    const config = BUSINESS_TYPE_MODULES[businessType] || BUSINESS_TYPE_MODULES.OTHER;
-    
-    if (businessFocus === 'BASIC') {
-      setSelectedModules([]);
-    } else {
-      setSelectedModules(config.recommended);
-    }
-  }, [businessType, businessFocus]);
-
-  // Auto-select plan when cycle or tier changes
-  useEffect(() => {
-    if (!pricing.plans || pricing.plans.length === 0) return;
-    const targetType = `${selectedTier}_${billingCycle}`;
-    setSelectedPlan(targetType);
-  }, [billingCycle, selectedTier, pricing.plans]);
-
-  const calculateBillingTotal = () => {
-    let total = 0;
-    
-    // Base Plan
-    const plan = pricing.plans.find((p: any) => p.type === selectedPlan);
-    if (plan) total += plan.price;
-    
-    // Modules
-    const multiplier = billingCycle === 'ANNUAL' ? 12 : 1;
-    
-    let discount = billingCycle === 'ANNUAL' ? 0.8 : 1;
-    if (activePromotion) {
-        if (billingCycle === 'ANNUAL') discount = (100 - activePromotion.annual_discount) / 100;
-    }
-    
-    selectedModules.forEach(modType => {
-      const mod = pricing.modules.find((m: any) => m.type === modType);
-      if (mod) total += (mod.price * multiplier * discount);
-    });
-    
-    return Math.round(total);
-  };
-
-  const calculateOriginalTotal = () => {
-    let total = 0;
-    
-    // Find Monthly version of the current plan to show original price
-    const monthlyType = selectedPlan?.replace('_ANNUAL', '_MONTHLY');
-    const basePlan = pricing.plans.find((p: any) => p.type === (billingCycle === 'ANNUAL' ? monthlyType : selectedPlan));
-    
-    if (basePlan) {
-        total += billingCycle === 'ANNUAL' ? (basePlan.price * 12) : basePlan.price;
-    }
-
-    const multiplier = billingCycle === 'ANNUAL' ? 12 : 1;
-    selectedModules.forEach(modType => {
-      const mod = pricing.modules.find((m: any) => m.type === modType);
-      if (mod) total += (mod.price * multiplier);
-    });
-    return total;
-  };
-
-  const selectedPlanName = useMemo(() => {
-    const plan = pricing.plans.find((p: any) => p.type === selectedPlan);
-    return plan ? plan.name : 'Standard Architecture';
-  }, [selectedPlan, pricing.plans]);
 
   if (loading) {
     return (
@@ -239,68 +156,10 @@ export default function PricingPage() {
             </div>
           </div>
 
-          <div className="flex flex-col gap-24">
-            <section>
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary"><Rocket size={24} /></div>
-                <h2 className="text-3xl font-black text-secondary uppercase italic tracking-tighter">Core Infrastructure <span className="text-primary tracking-normal">Architectures.</span></h2>
-              </div>
-              <p className="text-slate-500 font-medium mb-12 max-w-2xl">Select the foundational engine for your business. Scalable, secure, and built for high-performance operations.</p>
-              <PricingPlanSelector 
-                plans={pricing.plans}
-                selectedPlan={selectedPlan}
-                onSelectPlan={(type) => {
-                    const tier = type.split('_')[0] as 'ESSENTIAL' | 'GROWTH' | 'SCALE';
-                    setSelectedTier(tier);
-                    setSelectedPlan(type);
-                }}
-                billingCycle={billingCycle}
-              />
-            </section>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
-              <section>
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="w-12 h-12 bg-teal-500/10 rounded-2xl flex items-center justify-center text-teal-600"><Zap size={24} /></div>
-                  <h2 className="text-3xl font-black text-secondary uppercase italic tracking-tighter">Performance <span className="text-primary italic">Power-Ups.</span></h2>
-                </div>
-                <p className="text-slate-500 font-medium mb-8 text-sm">Enhance your architecture with specialized modules tailored to your specific industry constraints.</p>
-                <PricingModuleSelector 
-                  modules={pricing.modules}
-                  selectedModules={selectedModules}
-                  onSelectModule={(type) => {
-                    if (selectedModules.includes(type)) {
-                      setSelectedModules(selectedModules.filter(m => m !== type));
-                    } else {
-                      setSelectedModules([...selectedModules, type]);
-                    }
-                  }}
-                  billingCycle={billingCycle}
-                  businessFocus={businessFocus}
-                  businessType={businessType}
-                  businessTypeModules={BUSINESS_TYPE_MODULES}
-                />
-              </section>
-
-              <div className="mt-20 p-12 rounded-[3.5rem] bg-gradient-to-br from-secondary to-slate-900 text-white relative overflow-hidden shadow-2xl border border-white/5">
-                  <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 blur-[100px]" />
-                  <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-teal-500/10 blur-[60px]" />
-                  <span className="text-xs font-black text-primary uppercase tracking-[0.4em] mb-6 block">Legacy Mitigation</span>
-                  <h4 className="text-4xl font-black mb-6 italic tracking-tighter leading-tight">14 Days Evolution Trial.</h4>
-                  <p className="text-slate-400 text-lg mb-10 leading-relaxed font-medium capitalize">
-                     Experience every core architecture and power-up extension for 14 days. zero commitment. no card required for activation.
-                  </p>
-                  <Link href="/get-started" className="inline-flex items-center gap-4 py-5 px-10 bg-primary text-secondary rounded-2xl font-black hover:gap-8 transition-all uppercase text-xs tracking-[0.3em] shadow-xl shadow-primary/20">
-                     Deploy Trial Instance <ArrowRight size={20} />
-                  </Link>
-              </div>
-            </div>
-          </div>
-
-          <div ref={comparisonRef} className="mt-48 pt-32 border-t border-slate-100">
-            <div className="text-center mb-24 max-w-3xl mx-auto">
+          <div ref={comparisonRef} className="mt-12">
+            <div className="text-center mb-20 max-w-3xl mx-auto">
               <span className="text-xs font-black text-primary uppercase tracking-[0.4em]">Zero-Trust Standard</span>
-              <h2 className="text-6xl font-black text-secondary tracking-tighter mt-4 mb-8 uppercase italic">Full Comparison <span className="text-primary italic">Index.</span></h2>
+              <h2 className="text-6xl font-black text-secondary tracking-tighter mt-4 mb-8 uppercase italic transition-all">Architecture <span className="text-primary italic">Index.</span></h2>
               <p className="text-xl text-slate-500 font-medium leading-relaxed italic">
                  A transparent technical breakdown of how BETADAY scales with your business ambitions - from a single terminal to a multi-city high-frequency enterprise.
               </p>
@@ -310,15 +169,6 @@ export default function PricingPage() {
         </div>
       </main>
 
-      <PricingSummary 
-        hide={isInIndex}
-        businessFocus={businessFocus}
-        selectedPlanName={selectedPlanName}
-        selectedModulesCount={selectedModules.length}
-        billingCycle={billingCycle}
-        originalTotal={calculateOriginalTotal()}
-        billingTotal={calculateBillingTotal()}
-      />
 
       <div className="border-y border-slate-100 bg-[#fcfdfe] py-24">
          <div className="max-w-7xl mx-auto px-8 text-center mb-16">
