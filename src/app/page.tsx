@@ -4,14 +4,12 @@ import Navbar from '@/components/Navbar';
 import { 
   BarChart3, 
   ShieldCheck, 
-  Smartphone, 
   Zap, 
   ArrowRight, 
   Store, 
   Users, 
   CheckCircle2,
   PieChart,
-  HardDrive,
   Rocket,
   ArrowUpRight,
   TrendingUp,
@@ -20,17 +18,13 @@ import {
   AlertTriangle,
   Bell,
   Utensils,
-  Check,
-  LayoutDashboard,
-  ArrowLeft,
-  ChevronDown,
-  ChevronUp
+  LayoutDashboard
 } from 'lucide-react';
 import Link from 'next/link';
 import { ReferralService } from '@/services/referral.service';
 import { cn } from '@/lib/utils';
-import { useEffect, useState, useRef, useMemo } from 'react';
-import { motion, useScroll, useTransform, useSpring, useMotionValue, AnimatePresence } from 'framer-motion';
+import { useEffect, useState, useRef } from 'react';
+import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Clock, Tag, X, Sparkles } from 'lucide-react';
@@ -44,94 +38,9 @@ if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger);
 }
 
-type BillingCycle = 'MONTHLY' | 'QUARTERLY' | 'ANNUAL';
-
-const BUSINESS_TYPE_MODULES: Record<string, { recommended: string[], visible: string[] }> = {
-  RESTAURANT: {
-    recommended: ['ADVANCED_INVENTORY', 'AUTOMATED_COMPLIANCE', 'DIGITAL_MENU_QR'],
-    visible: ['RECIPE_MANAGEMENT', 'KITCHEN_DISPLAY'],
-  },
-  BAR: {
-    recommended: ['ADVANCED_INVENTORY', 'AUTOMATED_COMPLIANCE', 'DIGITAL_MENU_QR', 'TABLE_MANAGEMENT', 'SAVE_DRAFTS'],
-    visible: ['RECIPE_MANAGEMENT'],
-  },
-  LOUNGE: {
-    recommended: ['ADVANCED_INVENTORY', 'AUTOMATED_COMPLIANCE', 'DIGITAL_MENU_QR', 'TABLE_MANAGEMENT', 'SAVE_DRAFTS'],
-    visible: ['RECIPE_MANAGEMENT', 'KITCHEN_DISPLAY'],
-  },
-  SUPERMARKET: {
-    recommended: ['ADVANCED_INVENTORY', 'AUTOMATED_COMPLIANCE'],
-    visible: ['WHATSAPP_ALERTS'],
-  },
-  RETAIL: {
-    recommended: ['ADVANCED_INVENTORY', 'AUTOMATED_COMPLIANCE'],
-    visible: ['WHATSAPP_ALERTS'],
-  },
-  BOUTIQUE: {
-    recommended: ['ADVANCED_INVENTORY', 'AUTOMATED_COMPLIANCE'],
-    visible: ['WHATSAPP_ALERTS'],
-  },
-  PHARMACY: {
-    recommended: ['ADVANCED_INVENTORY', 'AUTOMATED_COMPLIANCE'],
-    visible: ['WHATSAPP_ALERTS'],
-  },
-  CLINIC: {
-    recommended: ['ADVANCED_INVENTORY', 'AUTOMATED_COMPLIANCE'],
-    visible: ['WHATSAPP_ALERTS'],
-  },
-  BAKERY: {
-    recommended: ['ADVANCED_INVENTORY', 'AUTOMATED_COMPLIANCE', 'RECIPE_MANAGEMENT'],
-    visible: ['KITCHEN_DISPLAY'],
-  },
-  HOTEL: {
-    recommended: ['ADVANCED_INVENTORY', 'AUTOMATED_COMPLIANCE', 'TABLE_MANAGEMENT', 'SAVE_DRAFTS', 'DIGITAL_MENU_QR'],
-    visible: ['KITCHEN_DISPLAY', 'RECIPE_MANAGEMENT'],
-  },
-  FUEL_STATION: {
-    recommended: ['ADVANCED_INVENTORY', 'AUTOMATED_COMPLIANCE', 'BULK_STOCK_MANAGEMENT'],
-    visible: ['WHATSAPP_ALERTS'],
-  },
-  LPG_STATION: {
-    recommended: ['ADVANCED_INVENTORY', 'AUTOMATED_COMPLIANCE', 'BULK_STOCK_MANAGEMENT'],
-    visible: ['WHATSAPP_ALERTS'],
-  },
-  OTHER: {
-    recommended: ['ADVANCED_INVENTORY', 'AUTOMATED_COMPLIANCE'],
-    visible: ['WHATSAPP_ALERTS', 'SAVE_DRAFTS'],
-  }
-};
-
-const FALLBACK_PRICING = {
-  plans: [
-    { type: 'MONTHLY', name: 'Standard Monthly', price: 30000, duration_days: 30, description: 'Optimized for 3 staff and 300 products.' },
-    { type: 'QUARTERLY', name: 'Standard Quarterly', price: 81000, duration_days: 90, description: 'Optimized for 7 staff and 1500 products.' },
-    { type: 'ANNUAL', name: 'Standard Annual', price: 300000, duration_days: 365, description: 'Optimized for 15 staff and 5000 products.' },
-    { type: 'SERVICE_MONTHLY', name: 'Basic Sales POS (Monthly)', price: 15000, duration_days: 30, description: 'Strictly for kiosks/LPG/small shops.' },
-    { type: 'SERVICE_QUARTERLY', name: 'Basic Sales POS (Quarterly)', price: 40000, duration_days: 90, description: 'Strictly for kiosks/LPG/small shops.' },
-    { type: 'SERVICE_ANNUAL', name: 'Basic Sales POS (Annual)', price: 150000, duration_days: 365, description: 'Strictly for kiosks/LPG/small shops.' }
-  ],
-  modules: [
-    { type: 'KITCHEN_DISPLAY', name: 'Kitchen Display System (KDS)', price: 5000, description: 'Real-time kitchen order monitor for chefs' },
-    { type: 'TABLE_MANAGEMENT', name: 'Table Management', price: 5000, description: 'Track floor layouts and table status' },
-    { type: 'SAVE_DRAFTS', name: 'Save Drafts', price: 4000, description: 'Save and resume incomplete orders' },
-    { type: 'ADVANCED_INVENTORY', name: 'Advanced Inventory Control', price: 18000, description: 'Batch tracking, shrinkage alerts, and stock history' },
-    { type: 'RECIPE_MANAGEMENT', name: 'Recipe & Cost Control (BOM)', price: 15000, description: 'Ingredient-level cost tracking per item sold' },
-    { type: 'WHATSAPP_ALERTS', name: 'Security & Owner WhatsApp Alerts', price: 8000, description: 'Instant alerts for voids, overrides, refunds, and logins' },
-    { type: 'AUTOMATED_COMPLIANCE', name: 'Automated Compliance & Audit Replay', price: 15000, description: 'Tax-ready reports, audit trail, and activity playback' },
-    { type: 'DIGITAL_MENU_QR', name: 'QR Digital Menu', price: 8000, description: 'Public QR-based digital menu with live product updates' },
-    { type: 'BULK_STOCK_MANAGEMENT', name: 'Bulk Stock & Round Tracking', price: 12000, description: 'Specialized tracking for fuel, gas, and bulk commodities.' }
-  ]
-};
-
 export default function LandingPage() {
   const [commSettings, setCommSettings] = useState<any>(null);
-  const [pricing, setPricing] = useState<any>(FALLBACK_PRICING);
   const [activePromotion, setActivePromotion] = useState<any>(null);
-  const [billingCycle, setBillingCycle] = useState<BillingCycle>('MONTHLY');
-  const [businessFocus, setBusinessFocus] = useState<'GROWING' | 'BASIC'>('GROWING');
-  const [businessType, setBusinessType] = useState<string>('RESTAURANT');
-  const [selectedPlan, setSelectedPlan] = useState<string | null>('MONTHLY');
-  const [selectedModules, setSelectedModules] = useState<string[]>([]);
   const [timeLeft, setTimeLeft] = useState<{ days: number, hours: number, minutes: number, seconds: number, isExpired: boolean, isStarted: boolean } | null>(null);
   const [showPromoModal, setShowPromoModal] = useState(false);
   const [hasShownPromoModal, setHasShownPromoModal] = useState(false);
@@ -139,11 +48,8 @@ export default function LandingPage() {
   useEffect(() => {
     const calculateTimeLeft = () => {
       const now = new Date();
-      
-      // Use dynamic dates from activePromotion if available, otherwise fallback
       const deadline = activePromotion ? new Date(activePromotion.end_date) : DEADLINE;
       const startDate = activePromotion ? new Date(activePromotion.start_date) : START_DATE;
-
       const difference = deadline.getTime() - now.getTime();
       const isExpired = difference <= 0;
       const isStarted = now.getTime() >= startDate.getTime();
@@ -192,121 +98,24 @@ export default function LandingPage() {
     };
   }, [timeLeft, hasShownPromoModal]);
 
-  const calculateBillingTotal = () => {
-    let total = 0;
-    
-    // Base Plan
-    let planType = selectedPlan;
-    if (businessFocus === 'BASIC') {
-      planType = billingCycle === 'ANNUAL' ? 'SERVICE_ANNUAL' : billingCycle === 'QUARTERLY' ? 'SERVICE_QUARTERLY' : 'SERVICE_MONTHLY';
-    }
-    const plan = pricing.plans.find((p: any) => p.type === planType);
-    if (plan) total += plan.price;
-    
-    // Modules
-    if (businessFocus === 'GROWING') {
-      const multiplier = billingCycle === 'ANNUAL' ? 12 : billingCycle === 'QUARTERLY' ? 3 : 1;
-      
-      // Dynamic discount from promotion
-      let discount = billingCycle === 'ANNUAL' ? 0.85 : billingCycle === 'QUARTERLY' ? 0.9 : 1;
-      if (activePromotion) {
-         if (billingCycle === 'QUARTERLY') discount = (100 - activePromotion.quarterly_discount) / 100;
-         else if (billingCycle === 'ANNUAL') discount = (100 - activePromotion.annual_discount) / 100;
-      }
-      
-      selectedModules.forEach(modType => {
-        const mod = pricing.modules.find((m: any) => m.type === modType);
-        if (mod) total += (mod.price * multiplier * discount);
-      });
-    }
-    
-    return Math.round(total);
-  };
-
-  const calculateOriginalTotal = () => {
-    let total = 0;
-    const multiplier = billingCycle === 'ANNUAL' ? 12 : billingCycle === 'QUARTERLY' ? 3 : 1;
-
-    // Base Plan original (Monthly price * multiplier)
-    const monthlyPlanType = businessFocus === 'BASIC' ? 'SERVICE_MONTHLY' : 'MONTHLY';
-    const monthlyPlan = pricing.plans.find((p: any) => p.type === monthlyPlanType);
-    if (monthlyPlan) total += (monthlyPlan.price * multiplier);
-    
-    // Modules original (Monthly price * multiplier)
-    if (businessFocus === 'GROWING') {
-      selectedModules.forEach(modType => {
-        const mod = pricing.modules.find((m: any) => m.type === modType);
-        if (mod) total += (mod.price * multiplier);
-      });
-    }
-    
-    return Math.round(total);
-  };
-
   useEffect(() => {
     ReferralService.getSettings().then(setCommSettings).catch(() => {});
     
-    // Fetch public pricing and active promotion
     const fetchData = async () => {
       try {
         const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://betadaypos.onrender.com/api/v1';
         const cleanBaseUrl = baseUrl.endsWith('/api/v1') ? baseUrl : `${baseUrl}/api/v1`;
-        
-        console.log("Fetching landing data from:", cleanBaseUrl);
-        
-        const [pricingRes, promoRes] = await Promise.allSettled([
-           fetch(`${cleanBaseUrl}/pricing`),
-           fetch(`${cleanBaseUrl}/active-promotion`)
-        ]);
-
-        if (pricingRes.status === 'fulfilled' && pricingRes.value.ok) {
-           const data = await pricingRes.value.json();
-           if (data && (data.plans || data.modules)) {
-             setPricing({
-                plans: data.plans || [],
-                modules: data.modules || [],
-                bundles: data.bundles || []
-             });
-             if (data.plans && data.plans.length > 0) {
-               setSelectedPlan(data.plans[0].type);
-             }
-           }
-        }
-
-        if (promoRes.status === 'fulfilled' && promoRes.value.ok) {
-           const promo = await promoRes.value.json();
+        const promoRes = await fetch(`${cleanBaseUrl}/active-promotion`);
+        if (promoRes.ok) {
+           const promo = await promoRes.json();
            setActivePromotion(promo);
         }
       } catch (err) {
         console.error("Data load error:", err);
       }
     };
-
     fetchData();
   }, []);
-
-  // Auto-select modules based on business type
-  useEffect(() => {
-    if (businessFocus === 'BASIC') {
-      setSelectedModules([]);
-    } else {
-      const config = BUSINESS_TYPE_MODULES[businessType] || BUSINESS_TYPE_MODULES.OTHER;
-      setSelectedModules(config.recommended);
-    }
-  }, [businessType, businessFocus]);
-
-  // Auto-select plan when cycle or focus changes
-  useEffect(() => {
-    if (!pricing.plans || pricing.plans.length === 0) return;
-
-    const targetType = billingCycle === 'ANNUAL' 
-      ? (businessFocus === 'BASIC' ? 'SERVICE_ANNUAL' : 'ANNUAL')
-      : billingCycle === 'QUARTERLY'
-      ? (businessFocus === 'BASIC' ? 'SERVICE_QUARTERLY' : 'QUARTERLY')
-      : (businessFocus === 'BASIC' ? 'SERVICE_MONTHLY' : 'MONTHLY');
-
-    setSelectedPlan(targetType);
-  }, [billingCycle, businessFocus, pricing.plans]);
 
   const heroRef = useRef(null);
   const headlineRef = useRef(null);
@@ -317,35 +126,14 @@ export default function LandingPage() {
   const y2 = useTransform(scrollY, [0, 500], [0, -150]);
 
   useEffect(() => {
-    if (!pricing) return;
-
-    // GSAP Scroll Animations
     const ctx = gsap.context(() => {
-      // Hero Entrance
       const tl = gsap.timeline();
       tl.from(headlineRef.current, { y: 100, opacity: 0, duration: 1, ease: "power4.out" })
         .from(subheadlineRef.current, { y: 50, opacity: 0, duration: 1, ease: "power4.out" }, "-=0.8")
         .from(".hero-cta", { y: 20, opacity: 0, duration: 0.8, ease: "back.out(1.7)" }, "-=0.6");
-
-      // Pricing Stagger
-      gsap.from(".pricing-card", {
-        scrollTrigger: {
-          trigger: "#pricing",
-          start: "top 75%",
-          toggleActions: "play none none reverse"
-        },
-        y: 50,
-        opacity: 0,
-        duration: 0.8,
-        stagger: 0.05,
-        ease: "back.out(1.2)",
-        clearProps: "all" // Ensure styles are cleared after animation
-      });
-
     }, heroRef);
-
     return () => ctx.revert();
-  }, [pricing]); // Re-run when pricing data updates
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#fcfdfe]" ref={heroRef}>
@@ -353,16 +141,12 @@ export default function LandingPage() {
 
       {/* Hero Section */}
       <section className="relative pt-32 pb-20 lg:pt-56 lg:pb-40 overflow-hidden">
-        {/* Animated Background Orbs */}
         <motion.div style={{ y: y1 }} className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary/20 rounded-full blur-[120px]" />
         <motion.div style={{ y: y2 }} className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-teal-200/20 rounded-full blur-[120px]" />
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="flex flex-col lg:flex-row items-center gap-16 lg:gap-24">
-            
-            {/* Left Content Column */}
             <div className="flex-1 text-center lg:text-left pt-10 lg:pt-0">
-              {/* Launch Offer Badge */}
               {IS_PROMO_ENABLED && timeLeft && !timeLeft.isExpired && (
                 <motion.div 
                   initial={{ opacity: 0, x: -20 }}
@@ -402,21 +186,20 @@ export default function LandingPage() {
               </p>
 
               <div className="hero-cta flex flex-col sm:flex-row justify-center lg:justify-start items-center gap-6 mb-12">
-                <button 
-                  onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })}
+                <Link 
+                  href="/pricing"
                   className="w-full sm:w-auto px-10 py-6 bg-secondary text-white rounded-2xl font-black text-lg hover:shadow-[0_25px_60px_-15px_rgba(15,23,42,0.4)] hover:-translate-y-1.5 transition-all flex items-center justify-center gap-4 group relative overflow-hidden active:scale-95"
                 >
-                  <span className="relative z-10">Activate Your License</span>
+                  <span className="relative z-10">Choose Your Plan</span>
                   <ArrowRight className="group-hover:translate-x-2 transition-transform relative z-10" />
                   <div className="absolute inset-0 bg-gradient-to-r from-primary to-teal-500 opacity-0 group-hover:opacity-100 transition-opacity" />
-                </button>
+                </Link>
 
                 <Link href="#features" className="w-full sm:w-auto px-10 py-6 border-2 border-slate-100 bg-white text-secondary rounded-2xl font-black text-lg hover:border-primary hover:text-primary transition-all active:scale-95 text-center">
                   Explore Ecosystem
                 </Link>
               </div>
 
-              {/* Mini Offer Highlights */}
               {IS_PROMO_ENABLED && timeLeft && !timeLeft.isExpired && (
                 <motion.div 
                   initial={{ opacity: 0, y: 20 }}
@@ -450,7 +233,6 @@ export default function LandingPage() {
               )}
             </div>
 
-            {/* Right Visual Column */}
             <div className="flex-1 relative w-full pt-10 lg:pt-0">
                <motion.div 
                 initial={{ x: 100, opacity: 0 }}
@@ -466,12 +248,9 @@ export default function LandingPage() {
                         className="w-full rounded-[2.1rem] shadow-sm transform hover:scale-[1.02] transition-transform duration-700"
                         style={{ objectFit: 'cover' }}
                        />
-                       
-                       {/* Overlay Elements */}
                        <div className="absolute inset-0 bg-gradient-to-t from-secondary/20 to-transparent pointer-events-none" />
                     </div>
 
-                    {/* Floating Indicators */}
                     <motion.div 
                       animate={{ y: [0, -15, 0] }}
                       transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }}
@@ -499,49 +278,8 @@ export default function LandingPage() {
                           <p className="text-sm font-black text-white italic">Audit Guard Active</p>
                        </div>
                     </motion.div>
-
-                    <motion.div 
-                      animate={{ x: [0, 20, 0] }}
-                      transition={{ repeat: Infinity, duration: 7, ease: "easeInOut", delay: 2 }}
-                      className="absolute top-1/2 -left-12 lg:-left-20 bg-white/90 backdrop-blur-md p-4 rounded-2xl shadow-xl border border-white hidden xl:flex items-center gap-3"
-                    >
-                       <div className="w-8 h-8 bg-amber-50 text-amber-600 rounded-full flex items-center justify-center">
-                          <Users size={16} />
-                       </div>
-                       <div className="text-left">
-                          <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Customer Loyalty</p>
-                          <p className="text-xs font-black text-slate-900">88% Retention Rate</p>
-                       </div>
-                    </motion.div>
                  </div>
                </motion.div>
-
-               {/* Countdown Timer Under Image */}
-               {IS_PROMO_ENABLED && timeLeft && !timeLeft.isExpired && (
-                 <motion.div 
-                   initial={{ opacity: 0, y: 30 }}
-                   animate={{ opacity: 1, y: 0 }}
-                   transition={{ delay: 1.5 }}
-                   className="mt-16 flex items-center justify-center lg:justify-end gap-5"
-                 >
-                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] hidden sm:block">Launch Offer Ends In:</p>
-                   <div className="flex items-center gap-3">
-                     {[
-                       { label: 'Days', value: timeLeft.days },
-                       { label: 'Hrs', value: timeLeft.hours },
-                       { label: 'Min', value: timeLeft.minutes },
-                       { label: 'Sec', value: timeLeft.seconds },
-                     ].map((unit, i) => (
-                       <div key={i} className="flex flex-col items-center">
-                         <div className="w-14 h-16 bg-white shadow-xl shadow-slate-200/50 rounded-2xl flex items-center justify-center border border-slate-100">
-                           <span className="text-2xl font-black text-secondary">{unit.value.toString().padStart(2, '0')}</span>
-                         </div>
-                         <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest mt-2">{unit.label}</span>
-                       </div>
-                     ))}
-                   </div>
-                 </motion.div>
-               )}
             </div>
           </div>
         </div>
@@ -556,347 +294,81 @@ export default function LandingPage() {
          </div>
       </div>
 
-      {/* Pricing & Power-Ups Section */}
+      {/* Pricing Preview Section */}
       <section id="pricing" className="py-32 bg-slate-50 relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-5xl lg:text-6xl font-black text-secondary tracking-tight mb-6 text-center">Simple <span className="text-primary italic">Pricing.</span> Extreme Power.</h2>
-            <p className="text-xl text-slate-500 max-w-2xl mx-auto mb-10">Choose a plan that fits your scale, and power up with specialized modules as you grow.</p>
-            
-            {/* Billing Cycle Toggle */}
-            <div className="bg-white p-1.5 rounded-2xl inline-flex shadow-sm border border-slate-100 mb-8">
-              {[
-                { id: 'MONTHLY' as BillingCycle, label: 'Monthly', tag: null },
-                { id: 'QUARTERLY' as BillingCycle, label: 'Quarterly', tag: 'Save 10%' },
-                { id: 'ANNUAL' as BillingCycle, label: 'Annual', tag: 'Save 15%' },
-              ].map((cycle) => (
-                <button
-                  key={cycle.id}
-                  type="button"
-                  onClick={() => setBillingCycle(cycle.id)}
-                  className={`px-6 py-3 rounded-xl text-sm font-bold transition-all relative ${
-                    billingCycle === cycle.id
-                      ? 'bg-secondary text-white shadow-md'
-                      : 'text-slate-500 hover:text-slate-700'
-                  }`}
-                >
-                  {cycle.label}
-                  {cycle.tag && (
-                    <span className={`absolute -top-2 -right-2 text-white text-[8px] font-black py-0.5 px-2 rounded-full transition-all ${
-                        billingCycle === cycle.id ? "bg-primary opacity-100 scale-100" : "bg-slate-400 opacity-0 scale-75"
-                    }`}>{cycle.tag}</span>
-                  )}
-                </button>
-              ))}
-            </div>
-
-            {/* Access Anywhere Banner */}
-            <div className="max-w-xl mx-auto mb-12 flex flex-col items-center gap-4">
-               <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/5 text-primary rounded-full text-xs font-black uppercase tracking-widest border border-primary/10">
-                  One license. Use on any device — mobile, desktop, or web.
-               </div>
-               <p className="text-[10px] text-slate-400 font-bold italic uppercase tracking-wider text-center">Access is based on the number of users, not devices.</p>
-            </div>
-
-            {/* Software License Disclaimer */}
-            <div className="max-w-2xl mx-auto p-4 bg-white border border-slate-200 rounded-2xl flex items-start gap-3 shadow-sm text-left">
-              <div className="w-8 h-8 bg-amber-50 rounded-xl flex items-center justify-center text-amber-500 flex-shrink-0 mt-0.5">
-                <AlertTriangle size={16} />
-              </div>
-              <div>
-                <p className="text-xs font-black text-slate-700">Software License Only</p>
-                <p className="text-[11px] text-slate-500 mt-1 leading-relaxed">
-                  All prices displayed are for the BETADAY <strong>software license only</strong> and do not include the cost of hardware (POS terminals, printers, barcode scanners, etc.). Hardware costs vary by setup — please contact your installer or sales representative for a customized quote.
-                </p>
-              </div>
-            </div>
+            <h2 className="text-5xl lg:text-6xl font-black text-secondary tracking-tight mb-6">Simple <span className="text-primary italic">Pricing.</span> Extreme Power.</h2>
+            <p className="text-xl text-slate-500 max-w-2xl mx-auto mb-10">Choose a base plan that fits your scale. Scalable for single shops to multi-location enterprises.</p>
           </div>
 
-            {/* Business Type Selector */}
-            <div className="max-w-md mx-auto mb-8 space-y-2">
-               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Select Your Industry</label>
-               <div className="relative group">
-                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                    <Store size={16} />
-                 </div>
-                 <select
-                   value={businessType}
-                   onChange={(e) => setBusinessType(e.target.value)}
-                   className="block w-full pl-10 pr-3 py-3 bg-white border border-slate-200 rounded-2xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all appearance-none font-bold cursor-pointer text-sm shadow-sm"
-                 >
-                   <option value="RESTAURANT">Restaurant / Cafe</option>
-                   <option value="BAR">Bar</option>
-                   <option value="LOUNGE">Lounge</option>
-                   <option value="SUPERMARKET">Supermarket</option>
-                   <option value="RETAIL">Retail Store</option>
-                   <option value="FUEL_STATION">Fuel Station</option>
-                   <option value="LPG_STATION">LPG Station</option>
-                   <option value="BAKERY">Bakery</option>
-                   <option value="HOTEL">Hotel</option>
-                   <option value="PHARMACY">Pharmacy</option>
-                   <option value="CLINIC">Clinic</option>
-                   <option value="BOUTIQUE">Boutique</option>
-                   <option value="OTHER">Other Industry</option>
-                 </select>
-               </div>
-            </div>
-
-            {/* Business Focus Toggle */}
-            <div className="flex flex-col md:flex-row gap-4 mb-16 p-1 bg-white rounded-2xl md:max-w-md mx-auto shadow-sm border border-slate-100 relative z-10">
-             <button
-              type="button"
-              onClick={() => {
-                setBusinessFocus('GROWING');
-                // Reset plan to standard if switching to growing
-                setSelectedPlan('MONTHLY');
-              }}
-              className={cn(
-                "flex-1 py-3 px-4 rounded-xl text-xs font-bold transition-all",
-                businessFocus === 'GROWING' ? "bg-secondary text-white shadow-md" : "text-slate-500 hover:bg-slate-50"
-              )}
-             >
-              Growing Business
-             </button>
-             <button
-              type="button"
-              onClick={() => {
-                setBusinessFocus('BASIC');
-                // Reset plan to service if switching to basic
-                setSelectedPlan('SERVICE_MONTHLY');
-              }}
-              className={cn(
-                "flex-1 py-3 px-4 rounded-xl text-xs font-bold transition-all",
-                businessFocus === 'BASIC' ? "bg-secondary text-white shadow-md" : "text-slate-500 hover:bg-slate-50"
-              )}
-             >
-              Starter / Basic
-             </button>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 relative pb-32">
-            {/* Base Plans */}
-            <div>
-              <h3 className="text-2xl font-black text-secondary mb-10 flex items-center gap-4">
-                 <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary"><Rocket size={20} /></div>
-                 Core Subscription Plans
-              </h3>
-              <div className="space-y-6">
-                 {(() => {
-                   const filtered = (pricing?.plans || []).filter((plan: any) => {
-                     const t = (plan.type || '').toUpperCase();
-                     const isService = t.includes('SERVICE');
-                     
-                     // Filter based on focus
-                     if (businessFocus === 'BASIC') {
-                        if (!isService) return false;
-                     } else {
-                        if (isService) return false;
-                     }
-
-                     if (billingCycle === 'MONTHLY') return t === 'MONTHLY' || t === 'SERVICE_MONTHLY';
-                     if (billingCycle === 'QUARTERLY') return t === 'QUARTERLY' || t === 'SERVICE_QUARTERLY';
-                     if (billingCycle === 'ANNUAL') return t === 'ANNUAL' || t === 'SERVICE_ANNUAL';
-                     return false;
-                   });
-                   
-                   const plansToShow = filtered.length > 0 ? filtered : (pricing?.plans || []);
-                   
-                   return plansToShow.map((plan: any) => {
-                    const isSelected = selectedPlan === plan.type;
-                    return (
-                      <div 
-                        key={plan.type} 
-                        onClick={() => setSelectedPlan(plan.type)}
-                        className={cn(
-                          "pricing-card p-8 rounded-[2.5rem] bg-white border-2 cursor-pointer transition-all group relative",
-                          isSelected ? "border-primary shadow-xl ring-4 ring-primary/5" : "border-slate-100 shadow-sm hover:border-slate-200"
-                        )}
-                      >
-                         {isSelected && (
-                           <div className="absolute -top-3 -right-3 w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white shadow-lg z-20">
-                             <Check size={18} strokeWidth={3} />
-                           </div>
-                         )}
-                         <div className="flex justify-between items-center mb-4">
-                           <h4 className="text-xl font-black text-secondary">{plan.name}</h4>
-                           <div className="text-right">
-                             <p className="text-2xl font-black text-primary">₦{plan.price.toLocaleString()}</p>
-                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">/ {plan.duration_days} DAYS</p>
-                           </div>
-                         </div>
-                         <p className="text-slate-500 mb-6 text-sm italic">{plan.description || `Optimized for ${plan.user_limit} staff and ${plan.product_limit} products.`}</p>
-                         <div className="flex flex-wrap gap-4">
-                           <span className="px-3 py-1 bg-slate-50 rounded-lg text-[10px] font-black text-slate-400 uppercase tracking-tighter">OFFLINE ACCESS</span>
-                           <span className="px-3 py-1 bg-slate-50 rounded-lg text-[10px] font-black text-slate-400 uppercase tracking-tighter">CLOUD SYNC</span>
-                           <span className="px-3 py-1 bg-slate-50 rounded-lg text-[10px] font-black text-slate-400 uppercase tracking-tighter">CORE REPORTS</span>
-                           {billingCycle !== 'MONTHLY' && (
-                             <span className="px-3 py-1 bg-teal-50 rounded-lg text-[10px] font-black text-teal-600 uppercase tracking-tighter animate-pulse">
-                               {billingCycle === 'ANNUAL' ? 'SAVE 15%' : 'SAVE 10%'}
-                             </span>
-                           )}
-                         </div>
-                      </div>
-                    );
-                   });
-                 })()}
-              </div>
-            </div>
-
-            {/* Optional Modules */}
-            <div>
-              <h3 className="text-2xl font-black text-secondary mb-10 flex items-center gap-4">
-                 <div className="w-10 h-10 bg-teal-500/10 rounded-xl flex items-center justify-center text-teal-600"><Zap size={20} /></div>
-                 Premium Power-Ups
-              </h3>
-              
-              {businessFocus === 'BASIC' ? (
-                <div className="flex-1 w-full p-12 text-center space-y-6 bg-white rounded-[3.5rem] border-2 border-dashed border-slate-100 animate-fade-in my-4">
-                   <div className="w-20 h-20 bg-teal-50 rounded-3xl flex items-center justify-center mx-auto text-teal-600 shadow-xl shadow-teal-500/5 rotate-3">
-                      <Store size={40} />
-                   </div>
-                   <div className="space-y-3 max-w-sm mx-auto">
-                      <h3 className="text-2xl font-black text-slate-900 tracking-tight leading-tight">Basic Sales Mode</h3>
-                      <p className="text-slate-500 leading-relaxed font-medium text-sm">
-                        Perfect for small shops & kiosks. Track sales, print receipts, and manage a small catalog.
-                      </p>
-                   </div>
-                   <div className="inline-flex items-center gap-3 px-6 py-3 bg-teal-100/50 text-teal-700 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] border border-teal-200">
-                      <ShieldCheck size={14} />
-                      Essential Features Only
-                   </div>
-                   <p className="text-[10px] text-slate-400 font-bold italic uppercase">Module selection is disabled for basic plans.</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+            {[
+              { 
+                name: 'Essential', 
+                price: '30,000', 
+                period: '30 Days', 
+                desc: 'Perfect for single stores and growing businesses.',
+                features: ['3 Staff Members', '300 Products', 'Core Reports', 'Cloud Sync']
+              },
+              { 
+                name: 'Professional', 
+                price: '81,000', 
+                period: '90 Days', 
+                popular: true,
+                desc: 'Advanced control for high-volume retailers.',
+                features: ['7 Staff Members', '1,500 Products', 'Audit Logs', 'Inventory Alerts']
+              },
+              { 
+                name: 'Enterprise', 
+                price: '300,000', 
+                period: '365 Days', 
+                desc: 'Full-scale solution for large enterprises.',
+                features: ['15+ Staff Members', '5,000+ Products', 'Custom Reports', 'Multi-Store Sync']
+              }
+            ].map((plan, i) => (
+              <div key={i} className={cn(
+                "p-10 rounded-[3rem] bg-white border-2 flex flex-col items-center text-center transition-all hover:-translate-y-2",
+                plan.popular ? "border-primary shadow-2xl relative scale-105 z-10" : "border-slate-100 shadow-sm"
+              )}>
+                {plan.popular && (
+                  <div className="absolute -top-5 left-1/2 -translate-x-1/2 bg-primary text-white text-[10px] font-black py-2 px-6 rounded-full uppercase tracking-widest shadow-lg">
+                    Most Popular
+                  </div>
+                )}
+                <h3 className="text-2xl font-black text-secondary mb-2">{plan.name}</h3>
+                <div className="mb-6">
+                  <span className="text-4xl font-black text-primary">₦{plan.price}</span>
+                  <span className="text-slate-400 font-bold ml-1 uppercase text-xs tracking-widest">/ {plan.period}</span>
                 </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {(() => {
-                   const config = BUSINESS_TYPE_MODULES[businessType] || BUSINESS_TYPE_MODULES.OTHER;
-                   const filteredModules = (pricing?.modules || []).filter((mod: any) => 
-                      config.recommended.includes(mod.type) || config.visible.includes(mod.type)
-                   );
-
-                   if (pricing?.modules?.length > 0 && filteredModules.length === 0) {
-                      return (
-                        <div className="col-span-full py-20 text-center border-2 border-dashed border-slate-100 rounded-[2.5rem] bg-white">
-                           <p className="text-slate-400 font-bold">Comprehensive standard POS features included.</p>
-                           <p className="text-[10px] text-slate-300 uppercase tracking-widest mt-2">No specialized add-ons required for this industry yet.</p>
-                        </div>
-                      );
-                   }
-
-                   return filteredModules.map((mod: any) => {
-                      const isRecommended = config.recommended.includes(mod.type);
-                      const multiplier = billingCycle === 'ANNUAL' ? 12 : billingCycle === 'QUARTERLY' ? 3 : 1;
-                      const discount = billingCycle === 'ANNUAL' ? 0.85 : billingCycle === 'QUARTERLY' ? 0.9 : 1;
-                      const displayPrice = Math.round(mod.price * multiplier * discount);
-                      const isSelected = selectedModules.includes(mod.type);
-
-                      return (
-                        <div 
-                          key={mod.type} 
-                          onClick={() => {
-                            if (isSelected) {
-                              setSelectedModules(selectedModules.filter(m => m !== mod.type));
-                            } else {
-                              setSelectedModules([...selectedModules, mod.type]);
-                            }
-                          }}
-                          className={cn(
-                            "pricing-card p-6 rounded-[2rem] bg-white border-2 cursor-pointer transition-all group relative",
-                            isSelected ? "border-teal-500 shadow-md bg-teal-50/10" : "border-slate-100 shadow-sm hover:border-teal-200"
-                          )}
-                        >
-                           {isSelected && (
-                             <div className="absolute -top-2 -right-2 w-6 h-6 bg-teal-500 rounded-full flex items-center justify-center text-white shadow-md z-20">
-                               <Check size={14} strokeWidth={3} />
-                             </div>
-                           )}
-                           {isRecommended && !isSelected && (
-                             <div className="absolute -top-2 -right-2 px-2 py-0.5 bg-teal-50 text-[8px] font-black text-teal-600 rounded-full border border-teal-100 shadow-sm z-20">
-                                RECOMMENDED
-                             </div>
-                           )}
-                           <div className="flex justify-between items-start mb-3">
-                             <h4 className="font-extrabold text-secondary text-sm">{mod.name}</h4>
-                             <div className="text-right">
-                               <span className="text-xs font-black text-teal-600">
-                                 ₦{displayPrice.toLocaleString()}
-                               </span>
-                               <p className="text-[8px] font-bold text-slate-400 uppercase">
-                                 {billingCycle === 'MONTHLY' ? '/mo' : billingCycle === 'QUARTERLY' ? '/qtr' : '/yr'}
-                               </p>
-                             </div>
-                           </div>
-                           <p className="text-[11px] text-slate-500 leading-relaxed mb-4">{mod.description}</p>
-                           <div className={cn(
-                             "w-8 h-8 rounded-lg flex items-center justify-center transition-all",
-                             isSelected ? "bg-teal-500 text-white" : "bg-teal-50 text-teal-600"
-                           )}>
-                             <ArrowUpRight size={14} />
-                           </div>
-                        </div>
-                      );
-                   });
-                })()}
-              </div>
-              )}
-              
-              <div className="mt-10 p-8 rounded-[2.5rem] bg-gradient-to-br from-secondary to-slate-800 text-white relative overflow-hidden">
-                 <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 blur-3xl" />
-                 <h4 className="text-xl font-black mb-2 italic">14 Days Free Experience</h4>
-                 <p className="text-slate-400 text-sm mb-6">Trial every single core feature and power-up for 14 days. Zero commitment. Full performance.</p>
-                 <Link href="/get-started" className="inline-flex items-center gap-2 font-black text-primary hover:gap-4 transition-all uppercase text-xs tracking-widest">
-                    Claim Your Trial <ArrowRight size={16} />
-                 </Link>
-              </div>
-            </div>
-
-            {/* Config Summary Bar - Floating or Fixed at bottom of section */}
-            <div className="absolute bottom-0 left-0 w-full p-4 pointer-events-none">
-              <div className="max-w-4xl mx-auto bg-slate-900 text-white p-6 rounded-[2rem] shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6 pointer-events-auto border border-white/10 animate-slide-up">
-                 <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 bg-primary/20 rounded-2xl flex items-center justify-center text-primary">
-                       <LayoutDashboard size={28} />
+                <p className="text-slate-500 mb-8 text-sm italic">{plan.desc}</p>
+                <div className="w-full space-y-4 mb-10">
+                  {plan.features.map((feat, j) => (
+                    <div key={j} className="flex items-center gap-3 text-slate-600 font-bold text-sm">
+                      <CheckCircle2 size={16} className="text-primary flex-shrink-0" />
+                      {feat}
                     </div>
-                    <div>
-                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Your Configuration Summary</p>
-                       <p className="text-lg font-black tracking-tight leading-none">
-                          {businessFocus === 'BASIC' ? 'Starter / Basic Plan' : (pricing.plans.find((p: any) => p.type === selectedPlan)?.name || 'Select a plan')}
-                          {businessFocus === 'GROWING' && selectedModules.length > 0 && <span className="text-primary ml-1">+ {selectedModules.length} Power-Ups</span>}
-                       </p>
-                    </div>
-                 </div>
-
-                   <div className="flex flex-col md:flex-row items-center gap-8">
-                    <div className="text-center md:text-right">
-                       <p className="text-[10px] font-black text-teal-400 uppercase tracking-widest mb-1">{billingCycle} Settlement Due</p>
-                       <div className="flex flex-col items-center md:items-end">
-                          {billingCycle !== 'MONTHLY' && (() => {
-                             const original = calculateOriginalTotal();
-                             const current = calculateBillingTotal();
-                             const savings = original > 0 ? Math.round(((original - current) / original) * 100) : 0;
-                             
-                             return (
-                               <div className="flex items-center gap-2 mb-1">
-                                  <div className="flex flex-col items-end">
-                                     <span className="text-[10px] font-bold text-slate-500 line-through opacity-70 relative -top-1">
-                                        ₦{original.toLocaleString()}
-                                     </span>
-                                  </div>
-                                  <span className="text-[9px] font-black bg-teal-500/10 text-teal-400 px-1.5 py-0.5 rounded-md uppercase">
-                                     Save {savings}%
-                                  </span>
-                               </div>
-                             );
-                          })()}
-                          <p className="text-3xl font-black tracking-tighter leading-tight">₦{calculateBillingTotal().toLocaleString()}</p>
-                       </div>
-                    </div>
-                    <Link href="/get-started" className="px-8 py-4 bg-primary text-secondary rounded-2xl font-black uppercase text-xs tracking-widest hover:scale-105 transition-all shadow-xl shadow-primary/20">
-                       Deploy Workspace
-                    </Link>
-                 </div>
+                  ))}
+                </div>
+                <Link 
+                  href="/pricing" 
+                  className={cn(
+                    "w-full py-4 rounded-2xl font-black uppercase text-xs tracking-widest transition-all",
+                    plan.popular ? "bg-primary text-secondary shadow-xl shadow-primary/20" : "bg-secondary text-white hover:bg-slate-800"
+                  )}
+                >
+                  View Plan Details
+                </Link>
               </div>
-            </div>
+            ))}
+          </div>
+
+          <div className="text-center">
+            <p className="text-slate-500 font-bold mb-6">Need a custom configuration or specialized modules?</p>
+            <Link href="/pricing" className="inline-flex items-center gap-3 px-10 py-5 bg-white border-2 border-slate-100 text-secondary rounded-2xl font-black hover:border-primary hover:text-primary transition-all group">
+              Explore All Plans & Modules 
+              <ArrowRight size={18} className="group-hover:translate-x-2 transition-transform" />
+            </Link>
           </div>
         </div>
       </section>
@@ -945,7 +417,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Mobile App Section - Split Hybrid */}
+      {/* Mobile App Section */}
       <section id="how-it-works" className="py-32 bg-secondary text-white relative overflow-hidden">
         <div className="absolute top-0 right-0 w-1/3 h-full bg-primary/5 blur-[100px] pointer-events-none" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -984,13 +456,13 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Installer CTA Section - Hyper Impact */}
+      {/* Installer CTA Section */}
       <section className="relative py-32 bg-primary">
         <div className="absolute inset-0 bg-slate-900/5 mix-blend-overlay" />
         <div className="max-w-5xl mx-auto px-4 text-center relative z-10">
           <h2 className="text-5xl lg:text-7xl font-black text-white mb-8 tracking-tighter">Become a <span className="italic text-secondary">Beta Partner.</span></h2>
           <p className="text-2xl text-white/80 mb-14 max-w-3xl mx-auto font-medium leading-relaxed">
-            Help digitalize the next generation of retailers. Secure a {commSettings?.enable_renewal_commission ? 'lifetime' : 'one-time'} commission of <span className="text-secondary font-black">{commSettings?.onboarding_rate || 20}%</span> on every business you onboard.
+            Help digitalize the next generation of retailers. Secure a {commSettings?.enable_renewal_commission ? 'lifetime' : 'one-time'} commission on every business you onboard.
           </p>
           <div className="flex flex-wrap justify-center gap-8">
             <Link 
@@ -999,20 +471,6 @@ export default function LandingPage() {
             >
               Start Earning Now
             </Link>
-          </div>
-          <div className="mt-16 flex flex-wrap justify-center gap-10 text-white/70 font-black uppercase text-xs tracking-[0.2em]">
-             <div className="flex items-center gap-3">
-               <ShieldCheck size={24} className="text-secondary" />
-               Instant Payouts
-             </div>
-             <div className="flex items-center gap-3">
-               <BookOpen size={24} className="text-secondary" />
-               Partner Academy
-             </div>
-             <div className="flex items-center gap-3">
-               <Users size={24} className="text-secondary" />
-               Dedicated Manager
-             </div>
           </div>
         </div>
       </section>
@@ -1088,6 +546,7 @@ export default function LandingPage() {
            </div>
         </div>
       </footer>
+
       {/* Promotion Modal */}
       <AnimatePresence>
         {IS_PROMO_ENABLED && showPromoModal && timeLeft && !timeLeft.isExpired && (
@@ -1128,16 +587,14 @@ export default function LandingPage() {
                 </p>
 
                 <div className="space-y-4">
-                  <button 
-                    onClick={() => {
-                      setShowPromoModal(false);
-                      document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' });
-                    }}
+                  <Link 
+                    href="/pricing"
+                    onClick={() => setShowPromoModal(false)}
                     className="w-full py-6 bg-secondary text-white rounded-2xl font-black uppercase tracking-[0.2em] text-xs hover:shadow-2xl hover:shadow-secondary/20 transition-all flex items-center justify-center gap-4 group active:scale-95"
                   >
                     Activate Pre-Launch Savings
                     <ArrowRight size={16} className="group-hover:translate-x-3 transition-transform" />
-                  </button>
+                  </Link>
                   <div className="flex justify-center gap-6 opacity-40">
                     <div className="flex flex-col"><span className="text-sm font-black text-slate-900">{timeLeft.days}D</span><span className="text-[7px] font-bold text-slate-400 uppercase">Days</span></div>
                     <div className="flex flex-col"><span className="text-sm font-black text-slate-900">{timeLeft.hours}H</span><span className="text-[7px] font-bold text-slate-400 uppercase">Hours</span></div>
