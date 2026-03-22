@@ -295,7 +295,7 @@ export default function LandingPage() {
       </div>
 
       {/* Pricing Preview Section */}
-      <section id="pricing" className="py-32 bg-slate-50 relative overflow-hidden">
+      <section id="pricing" className="hidden py-32 bg-slate-50 relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-5xl lg:text-6xl font-black text-secondary tracking-tight mb-6">Simple <span className="text-primary italic">Pricing.</span> Extreme Power.</h2>
@@ -384,15 +384,15 @@ export default function LandingPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
              {[
-               { icon: Cpu, title: 'Edge Performance', desc: 'Lightning fast transaction processing that never keeps your customers waiting.' },
-               { icon: BarChart3, title: 'Omni-Intelligence', desc: 'Real-time data synchronization between your physical stores and cloud dashboard.' },
-               { icon: ShieldCheck, title: 'Vault Security', desc: 'Multi-layer encryption and biometric-ready authentication for total peace of mind.' },
-               { icon: PieChart, title: 'Ghost Inventory', desc: 'Smart stock predictions that help you restock before you even run low.' },
-               { icon: Users, title: 'Force Multiplier', desc: 'Powerful staff permissions that empower your team while keeping you in control.' },
-               { icon: Zap, title: '1-Click Settlement', desc: 'Get your funds faster with our optimized payment rail integrations.' },
-               { icon: AlertTriangle, title: 'Anti-Theft Guard', desc: 'Real-time void tracking and audit logs that instantly flag suspicious cashier activity.' },
-               { icon: Bell, title: 'Live Pulse', desc: 'Instant notifications for critical events, shifts, and inventory alerts as they happen.' },
-               { icon: Utensils, title: 'Recipe Matrix', desc: 'Advanced Bill of Materials (BOM) to track every gram of ingredient used in your sales.' },
+               { icon: Cpu, title: 'Zero Delay Checkout', desc: 'Lightning fast sales processing. Never keep a customer waiting, even during peak hours.' },
+               { icon: BarChart3, title: 'Control from Anywhere', desc: 'Monitor your shop, track sales, and manage stock from your phone, wherever you are.' },
+               { icon: ShieldCheck, title: 'Safe & Secure Data', desc: 'Your business records are encrypted and backed up instantly. No more lost receipts.' },
+               { icon: PieChart, title: 'Smart Stock Alerts', desc: 'Get notified before you run out of products. Automatic restock reminders keep your shelves full.' },
+               { icon: Users, title: 'Staff Monitoring', desc: 'Assign roles to your team. Track who sold what and when, with full audit logs.' },
+               { icon: Zap, title: 'Instant Payments', desc: 'Accept cards and transfers. Get your funds settled into your bank account without delays.' },
+               { icon: AlertTriangle, title: 'Stop Missing Money', desc: 'Real-time monitoring of refunds and price changes. Block unauthorized access to your cash.' },
+               { icon: Bell, title: 'Real-time Updates', desc: 'Get instant WhatsApp alerts for every critical action in your business.' },
+               { icon: Utensils, title: 'Profit Control', desc: 'Track every single naira spent and earned. Know exactly which products are making you profit.' },
              ].map((feat, i) => (
                   <motion.div 
                     key={i} 
@@ -408,11 +408,87 @@ export default function LandingPage() {
                     </div>
                     <h3 className="text-2xl font-black text-secondary mb-4 tracking-tight">{feat.title}</h3>
                     <p className="text-slate-500 leading-relaxed text-lg">{feat.desc}</p>
-                    <div className="mt-8 pt-8 border-t border-slate-100 flex items-center gap-2 text-primary font-black text-sm group-hover:gap-3 transition-all cursor-pointer">
-                       LEARN MORE <ArrowUpRight size={18} />
-                    </div>
+                    <Link href={`/features#${feat.title.toLowerCase().replace(/\s+/g, '-')}`} className="mt-8 pt-8 border-t border-slate-100 flex items-center gap-2 text-primary font-black text-sm group-hover:gap-3 transition-all cursor-pointer">
+                       SEE HOW IT WORKS <ArrowUpRight size={18} />
+                    </Link>
                   </motion.div>
               ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Industry Solutions Section */}
+      <section className="py-32 bg-slate-900 text-white overflow-hidden relative">
+        <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="flex flex-col lg:flex-row items-end justify-between mb-20 gap-8">
+            <div className="max-w-2xl">
+              <div className="text-primary font-black uppercase tracking-[0.3em] text-xs mb-4">Tailored for You</div>
+              <h2 className="text-5xl lg:text-7xl font-black tracking-tight leading-[0.9]">Built for every <br /> <span className="text-primary italic">Industry.</span></h2>
+            </div>
+            <p className="text-xl text-slate-400 max-w-sm">From restaurants to retail, BETADAY is optimized for your specific business workflow.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[
+              { 
+                name: 'Restaurants & Bars', 
+                slug: 'restaurant',
+                desc: 'Table management, KDS, and recipe cost tracking.',
+                icon: Utensils,
+                color: 'bg-orange-500'
+              },
+              { 
+                name: 'Supermarkets', 
+                slug: 'supermarket',
+                desc: 'Bulk inventory, barcode scaling, and fast checkout.',
+                icon: Store,
+                color: 'bg-emerald-500'
+              },
+              { 
+                name: 'Electronics & Gadgets', 
+                slug: 'electronics',
+                desc: 'Serial number tracking and warranty management.',
+                icon: Cpu,
+                color: 'bg-blue-500'
+              },
+              { 
+                name: 'Pharmacies', 
+                slug: 'pharmacy',
+                desc: 'Expiry date alerts and prescription management.',
+                icon: ShieldCheck,
+                color: 'bg-red-500'
+              },
+              { 
+                name: 'Fuel & LPG Stations', 
+                slug: 'fuel-station',
+                desc: 'Round tracking and bulk commodity management.',
+                icon: Zap,
+                color: 'bg-amber-500'
+              },
+              { 
+                name: 'Boutiques & Fashion', 
+                slug: 'fashion',
+                desc: 'Size/Color variants and customer loyalty tracking.',
+                icon: Tag,
+                color: 'bg-pink-500'
+              }
+            ].map((industry, i) => (
+              <Link 
+                key={i} 
+                href={`/industries/${industry.slug}`}
+                className="group p-8 rounded-[2.5rem] bg-white/5 border border-white/10 hover:bg-white/10 transition-all block relative"
+              >
+                <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform", industry.color)}>
+                  <industry.icon size={28} />
+                </div>
+                <h3 className="text-2xl font-black mb-3">{industry.name}</h3>
+                <p className="text-slate-400 font-medium mb-8">{industry.desc}</p>
+                <div className="flex items-center gap-2 text-primary font-black text-xs uppercase tracking-widest group-hover:gap-4 transition-all">
+                  Read More <ArrowRight size={14} />
+                </div>
+              </Link>
+            ))}
           </div>
         </div>
       </section>
