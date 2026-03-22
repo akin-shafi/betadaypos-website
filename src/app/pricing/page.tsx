@@ -15,6 +15,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import PricingPlanSelector from '@/components/pricing/PricingPlanSelector';
 import PricingModuleSelector from '@/components/pricing/PricingModuleSelector';
+import PricingComparisonTable from '@/components/pricing/PricingComparisonTable';
 import PricingSummary from '@/components/pricing/PricingSummary';
 import { cn } from '@/lib/utils';
 
@@ -323,6 +324,17 @@ export default function PricingPage() {
               </div>
             </section>
           </div>
+
+          <div className="mt-32 pt-32 border-t border-slate-100">
+            <div className="text-center mb-20 max-w-3xl mx-auto">
+              <span className="text-xs font-black text-primary uppercase tracking-[0.4em]">Zero-Trust Standard</span>
+              <h2 className="text-5xl font-black text-secondary tracking-tighter mt-4 mb-6 uppercase italic">Full Comparison <span className="text-primary italic">Index.</span></h2>
+              <p className="text-lg text-slate-500 font-medium leading-relaxed italic">
+                 A transparent breakdown of how BETADAY scales with your business ambitions - from a single terminal to a multi-city enterprise.
+              </p>
+            </div>
+            <PricingComparisonTable billingCycle={billingCycle} />
+          </div>
         </div>
       </main>
 
@@ -334,6 +346,17 @@ export default function PricingPage() {
         originalTotal={calculateOriginalTotal()}
         billingTotal={calculateBillingTotal()}
       />
+
+      <div className="border-y border-slate-100 bg-[#fcfdfe] py-16">
+         <div className="max-w-7xl mx-auto px-8 text-center mb-10">
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em]">Zero-Trust Reconciliation Partners</span>
+         </div>
+         <div className="max-w-7xl mx-auto px-8 flex flex-wrap justify-center lg:justify-between items-center gap-12 grayscale opacity-40 hover:grayscale-0 hover:opacity-100 transition-all">
+            {['OPAY', 'MONNIFY', 'MONIEPOINT', 'PALMPAY', 'BANK TRANSFERS'].map(brand => (
+              <span key={brand} className="text-3xl font-black italic tracking-tighter text-secondary">{brand}</span>
+            ))}
+         </div>
+      </div>
 
       <footer className="py-24 bg-white border-t border-slate-100">
         <div className="max-w-7xl mx-auto px-8 flex flex-col md:flex-row justify-between items-center gap-8 text-slate-400 font-bold text-sm text-center md:text-left">
