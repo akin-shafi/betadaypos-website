@@ -181,8 +181,9 @@ export default function LandingPage() {
               </h1>
               
               <p ref={subheadlineRef} className="max-w-2xl mx-auto lg:mx-0 text-lg lg:text-xl text-slate-500 font-medium mb-12 leading-relaxed">
-                Run your business with real-time inventory control, compliance reporting,
-                staff monitoring, and bulk stock tracking — engineered for high-growth merchants.
+                Experience a <span className="text-primary font-black uppercase">Zero-Trust POS</span>. Automated OPay/Moniepoint 
+                reconciliation, hardware anti-theft tracking, and real-time bank sync — engineered 
+                for merchants who value every Naira.
               </p>
 
               <div className="hero-cta flex flex-col sm:flex-row justify-center lg:justify-start items-center gap-6 mb-12">
@@ -383,17 +384,17 @@ export default function LandingPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-             {[
-               { icon: Cpu, title: 'Zero Delay Checkout', desc: 'Lightning fast sales processing. Never keep a customer waiting, even during peak hours.' },
-               { icon: BarChart3, title: 'Control from Anywhere', desc: 'Monitor your shop, track sales, and manage stock from your phone, wherever you are.' },
-               { icon: ShieldCheck, title: 'Safe & Secure Data', desc: 'Your business records are encrypted and backed up instantly. No more lost receipts.' },
-               { icon: PieChart, title: 'Smart Stock Alerts', desc: 'Get notified before you run out of products. Automatic restock reminders keep your shelves full.' },
-               { icon: Users, title: 'Staff Monitoring', desc: 'Assign roles to your team. Track who sold what and when, with full audit logs.' },
-               { icon: Zap, title: 'Instant Payments', desc: 'Accept cards and transfers. Get your funds settled into your bank account without delays.' },
-               { icon: AlertTriangle, title: 'Stop Missing Money', desc: 'Real-time monitoring of refunds and price changes. Block unauthorized access to your cash.' },
-               { icon: Bell, title: 'Real-time Updates', desc: 'Get instant WhatsApp alerts for every critical action in your business.' },
-               { icon: Utensils, title: 'Profit Control', desc: 'Track every single naira spent and earned. Know exactly which products are making you profit.' },
-             ].map((feat, i) => (
+              {[
+                { icon: Zap, title: 'Instant Bank Sync', desc: 'Sync OPay, Moniepoint, and Bank Transfers directly to your POS. Sales complete automatically the second the alert hits the bank.' },
+                { icon: ShieldCheck, title: 'Hardware Anti-Thief', desc: 'Lock your business to specific terminals. Our system detects and blocks staff from using personal POS machines to divert your money.' },
+                { icon: BarChart3, title: 'Profit Auditing', desc: 'Automatically calculate provider fees (0.5% cap) and see your True Net Profit after bank deductions for every single sale.' },
+                { icon: PieChart, title: 'Smart Stock Alerts', desc: 'Get notified before you run out. Automatic restock reminders keep your shelves full and your business moving.' },
+                { icon: Users, title: 'Staff Performance', desc: 'Assign roles to your team. Track exactly who sold what, when, and on which specific hardware terminal ID.' },
+                { icon: LayoutDashboard, title: 'Settlement Reports', desc: 'Daily aggregated reports of your POS volumes vs actual bank settlements. Know exactly what hit your bank today.' },
+                { icon: AlertTriangle, title: 'Stop Cash Leakage', desc: 'Real-time monitoring of every voided sale and price change. Block unauthorized access to your business cash flow.' },
+                { icon: Bell, title: 'WhatsApp Alerts', desc: 'Get instant WhatsApp notifications for every critical business action, from low stock to high-value POS sales.' },
+                { icon: Utensils, title: 'Industry Specialized', desc: 'Tailored workflows for Restaurants (KDS), Pharmacies (Expiries), and Retailers (Bulk Inventory).' },
+              ].map((feat, i) => (
                   <motion.div 
                     key={i} 
                     initial={{ opacity: 0, y: 50 }}

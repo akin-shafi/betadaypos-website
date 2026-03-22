@@ -28,7 +28,9 @@ import {
   AlertCircle,
   History,
   Wallet,
-  Zap
+  Zap,
+  Globe,
+  Monitor
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { formatCurrency, cn } from '@/lib/utils';
@@ -45,6 +47,7 @@ export default function InstallerDashboard() {
   // Modal States
   const [isTrainingModalOpen, setIsTrainingModalOpen] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState<any>(null);
+  const [isReconGuideOpen, setIsReconGuideOpen] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [isPayoutModalOpen, setIsPayoutModalOpen] = useState(false);
@@ -464,10 +467,27 @@ export default function InstallerDashboard() {
                        </div>
                     </div>
 
-                    <button 
-                      onClick={() => setIsTrainingModalOpen(true)}
-                      className="w-full block p-6 bg-white rounded-[2rem] border border-slate-100 hover:border-primary hover:shadow-xl hover:shadow-primary/5 transition-all group text-left relative overflow-hidden"
-                    >
+                     <button 
+                       onClick={() => setIsReconGuideOpen(true)}
+                       className="block p-6 bg-teal-900 rounded-[2rem] border border-teal-800 hover:border-teal-400 hover:shadow-xl hover:shadow-teal-500/10 transition-all group group relative overflow-hidden"
+                     >
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-teal-500/10 rounded-full blur-2xl -mr-16 -mt-16" />
+                        <div className="flex items-center gap-5 relative z-10">
+                           <div className="w-14 h-14 bg-teal-800 rounded-2xl flex items-center justify-center text-teal-400 group-hover:bg-teal-400 group-hover:text-teal-900 transition-all shadow-sm">
+                              <ShieldCheck size={28} />
+                           </div>
+                           <div className="flex-1">
+                              <h3 className="font-black text-white group-hover:text-teal-400 transition-colors uppercase tracking-tight">Terminal Reconciliation</h3>
+                              <p className="text-xs text-teal-500">How to sync OPay/Moniepoint POS</p>
+                           </div>
+                           <ChevronRight className="text-teal-700 group-hover:text-teal-400 group-hover:translate-x-1 transition-all" />
+                        </div>
+                     </button>
+
+                     <button 
+                       onClick={() => setIsTrainingModalOpen(true)}
+                       className="w-full block p-6 bg-white rounded-[2rem] border border-slate-100 hover:border-primary hover:shadow-xl hover:shadow-primary/5 transition-all group text-left relative overflow-hidden"
+                     >
                        <div className="flex items-center gap-5 relative z-10">
                           <div className="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 group-hover:bg-primary group-hover:text-white transition-all shadow-sm">
                              <BookOpen size={28} />
@@ -627,6 +647,64 @@ export default function InstallerDashboard() {
                       )}
                    </div>
                  )}
+              </div>
+           </div>
+        </div>
+      )}
+
+      {/* Reconciliation Guide Modal */}
+      {isReconGuideOpen && (
+        <div className="fixed inset-0 bg-slate-900/90 backdrop-blur-xl z-[60] flex items-center justify-center p-4">
+           <div className="bg-white rounded-[3.5rem] w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl animate-in zoom-in duration-300">
+              <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-teal-900 text-white">
+                 <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 bg-teal-400/20 text-teal-400 rounded-[1.5rem] flex items-center justify-center">
+                       <ShieldCheck size={32} />
+                    </div>
+                    <div>
+                       <h2 className="text-3xl font-black italic tracking-tighter">Terminal Sync Masterclass</h2>
+                       <p className="text-teal-400 text-sm font-bold uppercase tracking-widest">Setup Guide for OPay & Moniepoint</p>
+                    </div>
+                 </div>
+                 <button onClick={() => setIsReconGuideOpen(false)} className="w-12 h-12 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-all">
+                    <X size={24} />
+                 </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-12 space-y-12">
+                 <div className="max-w-2xl mx-auto space-y-12 text-slate-600">
+                    <div className="space-y-4">
+                       <h3 className="text-2xl font-black text-slate-900 leading-tight">Installer's Checklist: Connecting Standalone POS</h3>
+                       <p className="font-medium">Follow these steps carefully to ensure every card swipe in the shop reflects in the owner's bank account and POS history.</p>
+                    </div>
+
+                    {[
+                       { step: '01', title: 'Copy Webhook URL', desc: 'Open the Merchant Dashboard in our POS System. Go to Settings > Reconciliation and copy the unique Webhook URL for the chosen provider.', icon: Copy, bg: 'bg-teal-50', text: 'text-teal-600' },
+                       { step: '02', title: 'Set Provider Dashboard', desc: 'Log into the Merchant’s OPay or Monnify Dashboard. Find Developer/API settings and paste the Webhook URL into the Notification field.', icon: Globe, bg: 'bg-blue-50', text: 'text-blue-600' },
+                       { step: '03', title: 'Register Hardware SN', desc: 'Look at the back of the terminal for the Serial Number (SN). Enter this SN into the POS Terminal Settings to link the device to the branch.', icon: Monitor, bg: 'bg-amber-50', text: 'text-amber-600' },
+                       { step: '04', title: 'Carryout ₦100 Test', desc: 'Create a ₦100 sale in the POS. Process it on the terminal. If successful, the POS should automatically complete the sale within 3 seconds.', icon: Zap, bg: 'bg-rose-50', text: 'text-rose-600' },
+                    ].map((item, i) => (
+                       <div key={i} className="flex gap-8 group">
+                          <div className="shrink-0 flex flex-col items-center">
+                             <div className={`w-14 h-14 ${item.bg} ${item.text} rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform`}>
+                                <item.icon size={24} />
+                             </div>
+                             {i < 3 && <div className="w-0.5 h-full bg-slate-100 mt-4" />}
+                          </div>
+                          <div className="space-y-2 pt-1 pb-10">
+                             <div className="flex items-center gap-3">
+                                <span className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">{item.step}</span>
+                                <h4 className="text-xl font-black text-slate-900 uppercase tracking-tight">{item.title}</h4>
+                             </div>
+                             <p className="leading-relaxed font-medium text-slate-500 italic max-w-lg">{item.desc}</p>
+                          </div>
+                       </div>
+                    ))}
+                 </div>
+              </div>
+
+              <div className="p-8 bg-slate-50 border-t border-slate-100 text-center">
+                 <button onClick={() => setIsReconGuideOpen(false)} className="px-12 py-5 bg-teal-900 text-teal-400 rounded-3xl font-black uppercase tracking-widest text-xs hover:bg-slate-900 transition-all">Got it, Let's Install</button>
               </div>
            </div>
         </div>
