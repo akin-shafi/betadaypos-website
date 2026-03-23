@@ -164,8 +164,8 @@ export default function PricingPage() {
             </div>
           </div>
 
-          <div ref={comparisonRef} className="mt-12">
-            <div className="text-center mb-20 max-w-3xl mx-auto">
+          <div ref={comparisonRef} className=" mt-12">
+            <div className="hidden text-center mb-20 max-w-3xl mx-auto">
               <span className="text-xs font-black text-primary uppercase tracking-[0.4em]">Zero-Trust Standard</span>
               <h2 className="text-6xl font-black text-secondary tracking-tighter mt-4 mb-8 uppercase italic transition-all">Architecture <span className="text-primary italic">Index.</span></h2>
               <p className="text-xl text-slate-500 font-medium leading-relaxed italic">
