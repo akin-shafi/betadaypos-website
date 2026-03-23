@@ -36,17 +36,17 @@ const BUSINESS_TYPE_MODULES: Record<string, { recommended: string[], visible: st
 
 const FALLBACK_PRICING = {
   plans: [
-    { type: 'ESSENTIAL_MONTHLY', name: 'Essential Monthly', price: 12500, duration_days: 30, description: 'Basic control for small teams.' },
-    { type: 'ESSENTIAL_ANNUAL', name: 'Essential Annual', price: 100000, duration_days: 365, description: 'Pay for 8 months.' },
-    { type: 'GROWTH_MONTHLY', name: 'Growth Monthly', price: 25000, duration_days: 30, description: 'Advanced tools for growing businesses.' },
-    { type: 'GROWTH_ANNUAL', name: 'Growth Annual', price: 200000, duration_days: 365, description: 'Pay for 8 months.' },
-    { type: 'SCALE_MONTHLY', name: 'Scale Monthly', price: 45000, duration_days: 30, description: 'High-performance for large enterprises.' },
-    { type: 'SCALE_ANNUAL', name: 'Scale Annual', price: 360000, duration_days: 365, description: 'Pay for 8 months.' },
+    { type: 'ESSENTIAL_MONTHLY', name: 'Essential Monthly', price: 12500, duration_days: 30, user_limit: 2, product_limit: 300, description: 'Basic control for small teams.' },
+    { type: 'ESSENTIAL_ANNUAL', name: 'Essential Annual', price: 100000, duration_days: 365, user_limit: 2, product_limit: 300, description: 'Pay for 8 months.' },
+    { type: 'GROWTH_MONTHLY', name: 'Growth Monthly', price: 25000, duration_days: 30, user_limit: 10, product_limit: 2500, description: 'Advanced tools for growing businesses.' },
+    { type: 'GROWTH_ANNUAL', name: 'Growth Annual', price: 200000, duration_days: 365, user_limit: 10, product_limit: 2500, description: 'Pay for 8 months.' },
+    { type: 'SCALE_MONTHLY', name: 'Scale Monthly', price: 55000, duration_days: 30, user_limit: 50, product_limit: 15000, description: 'High-performance for large enterprises.' },
+    { type: 'SCALE_ANNUAL', name: 'Scale Annual', price: 440000, duration_days: 365, user_limit: 50, product_limit: 15000, description: 'Pay for 8 months.' },
   ],
   modules: [
-    { type: 'KITCHEN_DISPLAY', name: 'Kitchen Display System (KDS)', price: 3000, description: 'Real-time kitchen order monitor for chefs' },
-    { type: 'TABLE_MANAGEMENT', name: 'Table Management', price: 3000, description: 'Track floor layouts and table status' },
-    { type: 'SAVE_DRAFTS', name: 'Save Drafts', price: 2500, description: 'Save and resume incomplete orders' },
+    { type: 'KITCHEN_DISPLAY', name: 'Kitchen Display System (KDS)', price: 4000, description: 'Real-time kitchen order monitor for chefs' },
+    { type: 'TABLE_MANAGEMENT', name: 'Table Management', price: 4000, description: 'Track floor layouts and table status' },
+    { type: 'SAVE_DRAFTS', name: 'Save Drafts', price: 3000, description: 'Save and resume incomplete orders' },
     { type: 'ADVANCED_INVENTORY', name: 'Advanced Inventory Control', price: 15000, description: 'Batch tracking, shrinkage alerts, and stock history' },
     { type: 'RECIPE_MANAGEMENT', name: 'Recipe & Cost Control (BOM)', price: 12000, description: 'Ingredient-level cost tracking per item sold' },
     { type: 'WHATSAPP_ALERTS', name: 'Security & Owner WhatsApp Alerts', price: 5000, description: 'Instant alerts for voids, overrides, refunds, and logins' },
@@ -73,6 +73,13 @@ export default function PricingPage() {
       try {
         const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://betadaypos.onrender.com/api/v1';
         
+        // Fetch Pricing
+        const pricingRes = await fetch(`${baseUrl}/pricing`);
+        if (pricingRes.ok) {
+          const data = await pricingRes.json();
+          setPricing(data);
+        }
+
         // Fetch Promotion
         const promoRes = await fetch(`${baseUrl}/active-promotion`);
         if (promoRes.ok) {
@@ -82,6 +89,7 @@ export default function PricingPage() {
 
         setLoading(false);
       } catch (err) {
+        console.error("Failed to fetch dynamic data:", err);
         setLoading(false);
       }
     };
@@ -127,7 +135,7 @@ export default function PricingPage() {
                   {cycle.label}
                   {cycle.id === 'ANNUAL' && (
                     <span className="absolute -top-2 -right-2 bg-primary text-white text-[9px] font-black py-1 px-3 rounded-full shadow-lg">
-                        SAVE 20%
+                        SAVE 33%
                     </span>
                   )}
                 </button>
@@ -164,7 +172,10 @@ export default function PricingPage() {
                  A transparent technical breakdown of how BETADAY scales with your business ambitions - from a single terminal to a multi-city high-frequency enterprise.
               </p>
             </div>
-            <PricingComparisonTable billingCycle={billingCycle} />
+            <PricingComparisonTable 
+              billingCycle={billingCycle} 
+              plans={pricing.plans.length > 0 ? pricing.plans : FALLBACK_PRICING.plans}
+            />
           </div>
         </div>
       </main>

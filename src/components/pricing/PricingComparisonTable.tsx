@@ -19,36 +19,47 @@ import Link from 'next/link';
 
 interface PricingComparisonTableProps {
   billingCycle: 'MONTHLY' | 'ANNUAL';
+  plans: any[];
 }
 
-const PricingComparisonTable = ({ billingCycle }: PricingComparisonTableProps) => {
-  const getCyclePrice = (base: number) => {
-    if (billingCycle === 'ANNUAL') return (base * 8).toLocaleString();
-    return base.toLocaleString();
-  };
-
+const PricingComparisonTable = ({ billingCycle, plans }: PricingComparisonTableProps) => {
   const getCycleLabel = () => {
     if (billingCycle === 'ANNUAL') return 'per year';
     return 'per month';
   };
 
+  const getPriceByPrefix = (prefix: string) => {
+    const cycleSuffix = billingCycle === 'ANNUAL' ? '_ANNUAL' : '_MONTHLY';
+    const planId = `${prefix}${cycleSuffix}`;
+    const plan = plans.find(p => p.type === planId);
+    if (!plan) return '---';
+    return plan.price.toLocaleString();
+  };
+
+  const getLimitByPrefix = (prefix: string, field: 'user_limit' | 'product_limit') => {
+    const planId = `${prefix}_MONTHLY`;
+    const plan = plans.find(p => p.type === planId);
+    if (!plan) return '---';
+    return plan[field].toLocaleString();
+  };
+
   const tiers = [
     { 
         name: 'Essential Architecture', 
-        price: getCyclePrice(12500), 
+        price: getPriceByPrefix('ESSENTIAL'), 
         desc: 'Core control for small teams.',
         color: 'bg-slate-50' 
     },
     { 
         name: 'Growth Architecture', 
-        price: getCyclePrice(25000), 
+        price: getPriceByPrefix('GROWTH'), 
         desc: 'Advanced tools for growing businesses.',
         popular: true,
         color: 'bg-primary/5' 
     },
     { 
         name: 'Scale Architecture', 
-        price: getCyclePrice(45000), 
+        price: getPriceByPrefix('SCALE'), 
         desc: 'High-performance for large enterprises.',
         recommended: true,
         color: 'bg-secondary/5' 
@@ -97,8 +108,26 @@ const PricingComparisonTable = ({ billingCycle }: PricingComparisonTableProps) =
       name: 'Ownership & Control',
       icon: LayoutDashboard,
       features: [
-        { name: 'Staff Member Limit', helper: 'Accounts for your employees', plans: ['3', '10', '50', 'Unlimited'] },
-        { name: 'Product Capacity', helper: 'Max quantity of items in stock', plans: ['500', '2,500', '15,000', 'Unlimited'] },
+        { 
+            name: 'Staff Member Limit', 
+            helper: 'Accounts for your employees', 
+            plans: [
+                getLimitByPrefix('ESSENTIAL', 'user_limit'), 
+                getLimitByPrefix('GROWTH', 'user_limit'), 
+                getLimitByPrefix('SCALE', 'user_limit'), 
+                'Unlimited'
+            ] 
+        },
+        { 
+            name: 'Product Capacity', 
+            helper: 'Max quantity of items in stock', 
+            plans: [
+                getLimitByPrefix('ESSENTIAL', 'product_limit'), 
+                getLimitByPrefix('GROWTH', 'product_limit'), 
+                getLimitByPrefix('SCALE', 'product_limit'), 
+                'Unlimited'
+            ] 
+        },
         { name: 'WhatsApp Alerts', helper: 'Get alerts on your phone for every sale/void', plans: [true, true, true, true] },
         { name: 'Activity Replay', helper: 'Step-by-step playback of any cashier action', plans: [false, 'Module', true, true] },
       ]
