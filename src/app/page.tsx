@@ -103,7 +103,7 @@ export default function LandingPage() {
     
     const fetchData = async () => {
       try {
-        const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://betadaypos.onrender.com/api/v1';
+        const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://zida-pos-api.onrender.com/api/v1';
         const cleanBaseUrl = baseUrl.endsWith('/api/v1') ? baseUrl : `${baseUrl}/api/v1`;
         const promoRes = await fetch(`${cleanBaseUrl}/active-promotion`);
         if (promoRes.ok) {
